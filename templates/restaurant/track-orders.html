@@ -1,111 +1,676 @@
 {% extends 'base.html' %}
-
 {% load tz %}
-
 {% load static %}
 
-{% block title %}Orders{% endblock %}
+{% block title %}Track Orders — {{ restaurant.name }}{% endblock %}
 
 {% block styles %}
-    <style>
-        .header {
-            font-size: 3rem;
-            font-weight: bold;
-            margin: 2rem auto;
-            text-align: center;
-        }
-    </style>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+        --green: #10b981;
+        --green-light: #d1fae5;
+        --red: #ef4444;
+        --red-light: #fee2e2;
+        --blue: #3b82f6;
+        --blue-light: #dbeafe;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--light);
+        color: var(--dark);
+        margin: 0;
+    }
+
+    /* ── PAGE WRAPPER ── */
+    .orders-page {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 5rem;
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+        margin-bottom: 2.5rem;
+        animation: fadeUp 0.5s ease both;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .page-eyebrow {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--amber-dark);
+        margin-bottom: 0.4rem;
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        color: var(--dark);
+        line-height: 1.1;
+        margin: 0;
+    }
+
+    .page-title em {
+        color: var(--amber-dark);
+        font-style: italic;
+    }
+
+    .orders-count-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--amber-light);
+        border: 1.5px solid rgba(245,158,11,0.3);
+        border-radius: 50px;
+        padding: 0.5rem 1.1rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--amber-dark);
+        white-space: nowrap;
+        letter-spacing: 0.04em;
+        align-self: center;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    .empty-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .empty-state h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.6rem;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin-bottom: 0;
+        line-height: 1.6;
+    }
+
+    /* ── ORDER CARDS ── */
+    .orders-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .order-card {
+        background: white;
+        border-radius: 20px;
+        border: 1.5px solid var(--border);
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.2s ease;
+    }
+
+    .order-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .order-card:hover {
+        box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    }
+
+    /* Color bar — status coded */
+    .order-card-bar {
+        height: 4px;
+        width: 100%;
+    }
+
+    .order-card-bar.pending       { background: linear-gradient(90deg, var(--amber), #fbbf24); }
+    .order-card-bar.preparing     { background: linear-gradient(90deg, var(--amber), #fbbf24); }
+    .order-card-bar.processing    { background: linear-gradient(90deg, var(--amber), #fbbf24); }
+    .order-card-bar.on_the_way    { background: linear-gradient(90deg, var(--blue), #60a5fa); }
+    .order-card-bar.rider_on_way  { background: linear-gradient(90deg, var(--blue), #60a5fa); }
+    .order-card-bar.delivered,
+    .order-card-bar.success       { background: linear-gradient(90deg, var(--green), #34d399); }
+    .order-card-bar.cancelled     { background: linear-gradient(90deg, var(--red), #f87171); }
+
+    /* ── CARD HEADER ── */
+    .order-card-header {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .order-id-block {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .order-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--amber-light);
+        display: grid;
+        place-items: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .order-id-label {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark);
+        line-height: 1.2;
+    }
+
+    .order-date {
+        font-size: 0.78rem;
+        color: var(--muted);
+        font-weight: 400;
+        margin-top: 0.15rem;
+    }
+
+    /* Status badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        flex-shrink: 0;
+        text-transform: capitalize;
+    }
+
+    .status-badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .status-badge.pending,
+    .status-badge.preparing,
+    .status-badge.processing {
+        background: var(--amber-light);
+        color: var(--amber-dark);
+    }
+    .status-badge.pending .dot,
+    .status-badge.preparing .dot,
+    .status-badge.processing .dot {
+        background: var(--amber-dark);
+        animation: pulse 1.4s infinite;
+    }
+
+    .status-badge.on_the_way,
+    .status-badge.rider_on_way {
+        background: var(--blue-light);
+        color: var(--blue);
+    }
+    .status-badge.on_the_way .dot,
+    .status-badge.rider_on_way .dot {
+        background: var(--blue);
+        animation: pulse 1.2s infinite;
+    }
+
+    .status-badge.delivered,
+    .status-badge.success {
+        background: var(--green-light);
+        color: #059669;
+    }
+    .status-badge.delivered .dot,
+    .status-badge.success .dot {
+        background: #059669;
+    }
+
+    .status-badge.cancelled {
+        background: var(--red-light);
+        color: var(--red);
+    }
+    .status-badge.cancelled .dot { background: var(--red); }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.45; transform: scale(0.75); }
+    }
+
+    /* ── CARD META ── */
+    .order-card-meta {
+        padding: 0.7rem 1.5rem;
+        background: #fafaf9;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--mid);
+    }
+
+    .meta-chip svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--muted); }
+    .meta-chip strong { color: var(--dark); font-weight: 500; }
+
+    .meta-sep {
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: var(--border);
+    }
+
+    /* ── CARD BODY: Items ── */
+    .order-card-body {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+    }
+
+    .items-table thead tr { border-bottom: 1px solid var(--border); }
+
+    .items-table th {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 0 0 0.6rem;
+        text-align: left;
+    }
+
+    .items-table th:last-child { text-align: right; }
+
+    .items-table td {
+        padding: 0.6rem 0;
+        font-size: 0.88rem;
+        color: var(--mid);
+        border-bottom: 1px solid #f5f4f3;
+        font-weight: 400;
+        line-height: 1.4;
+        vertical-align: middle;
+    }
+
+    .items-table td:last-child {
+        text-align: right;
+        font-weight: 500;
+        color: var(--dark);
+    }
+
+    .items-table tbody tr:last-child td { border-bottom: none; }
+
+    .item-qty {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        background: var(--amber-light);
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--amber-dark);
+        margin-right: 0.4rem;
+        flex-shrink: 0;
+    }
+
+    .item-name-cell { display: flex; align-items: center; }
+
+    /* Total row */
+    .order-total {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.875rem 0 0;
+        border-top: 1.5px solid var(--border);
+        margin-top: 0.25rem;
+    }
+
+    .total-label {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .total-amount {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--amber-dark);
+    }
+
+    /* ── CARD FOOTER ── */
+    .order-card-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border);
+        background: #fafaf9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .contact-chips {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .contact-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .contact-chip svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    .contact-chip.rider {
+        background: var(--amber-light);
+        border: 1.5px solid rgba(245,158,11,0.35);
+        color: var(--amber-dark);
+    }
+
+    .contact-chip.customer {
+        background: var(--blue-light);
+        border: 1.5px solid rgba(59,130,246,0.3);
+        color: #2563eb;
+    }
+
+    .order-id-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--mid);
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        padding: 0.3rem 0.75rem;
+    }
+
+    .order-id-chip svg { width: 12px; height: 12px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+        .orders-page { padding: 2rem 1rem 4rem; }
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .order-card-header { flex-direction: column; align-items: flex-start; }
+        .order-card-footer { flex-direction: column; align-items: flex-start; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="m-3 row" style="min-height: 100dvh;">
-        <h1 class="header text-capitalize">{{ restaurant.name }}</h1>
-        {% if empty_list %}
-            <div class="d-flex justify-content-center">
-                <h1 class="fs-3">Opps! no orders yet...!!</h1>
-            </div>
+<div class="orders-page">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Restaurant Dashboard</div>
+            <h1 class="page-title"><em>{{ restaurant.name }}</em> Orders</h1>
+        </div>
+        {% if not empty_list %}
+        <div class="orders-count-pill">
+            🧾 {{ order_list|length }} order{{ order_list|length|pluralize }}
+        </div>
         {% endif %}
+    </div>
+
+    {% if empty_list %}
+    <div class="empty-state">
+        <span class="empty-icon">🛍️</span>
+        <h2>No orders yet</h2>
+        <p>Orders from customers will appear here once they start placing them.</p>
+    </div>
+
+    {% else %}
+    <div class="orders-list">
         {% for order_instance in order_list %}
 
+        {% with status=order_instance.order.status|lower %}
+        <div class="order-card">
 
-            <div class="col-lg-6 col-md-12 p-2">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="fw-normal fs-3 my-5">
-                            <div>Order created at: {{ order_instance.order.created_at }}</div>
-                        </div>
-                        <table class="table table-borderless rounded-3 table-striped">
-                            <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Price</th>
-                            </tr>
-                            </thead>
+            <!-- Colour bar -->
+            <div class="order-card-bar {{ status }}"></div>
 
-                            <tbody>
-                            {% for item in order_instance.items %}
-                                <tr class="">
-                                    <td class="text-start"><strong>{{ item.quantity }}x</strong>{{ item.item.name }}
-                                    </td>
-                                    <td>Rs. {{ item.item.price }}</td>
-                                </tr>
-                            {% endfor %}
-
-                            </tbody>
-
-                            <tfoot>
-                            <tr>
-                                <td>
-                                    <div class="fs-3 fw-bold">Total</div>
-                                </td>
-                                <td>
-                                    <div class="fs-3 fw-bold">Rs. {{ order_instance.order.total_amount }}</div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <div class="fs-3 fw-bold">Order ID</div>
-                                </td>
-                                <td>
-                                    <div class="fs-3 fw-bold">{{ order_instance.order.pk }}</div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <div class="fs-3 fw-bold">Rider Phone No</div>
-                                </td>
-                                <td>
-                                    <div class="fs-3 fw-bold">{{ order_instance.order.rider.phone }}</div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <div class="fs-3 fw-bold">Customer Phone No</div>
-                                </td>
-                                <td>
-                                    <div class="fs-3 fw-bold">{{ order_instance.order.user.phone }}</div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <div class="fs-3 fw-bold">Status</div>
-                                </td>
-                                <td>
-                                    <div class="fs-3 fw-bold text-{{ order_instance.order.get_status_color }}">{{ order_instance.order.get_status }}</div>
-                                </td>
-                            </tr>
-                            </tfoot>
-                        </table>
+            <!-- Card Header -->
+            <div class="order-card-header">
+                <div class="order-id-block">
+                    <div class="order-icon">🍕</div>
+                    <div>
+                        <div class="order-id-label">Order #{{ order_instance.order.pk }}</div>
+                        <div class="order-date">{{ order_instance.order.created_at|localtime|date:"D, d M Y · H:i" }}</div>
                     </div>
+                </div>
+
+                <span class="status-badge {{ status }}">
+                    <span class="dot"></span>
+                    {{ order_instance.order.get_status }}
+                </span>
+            </div>
+
+            <!-- Meta row -->
+            <div class="order-card-meta">
+                <div class="meta-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <strong>{{ order_instance.order.user.first_name }} {{ order_instance.order.user.last_name }}</strong>
+                </div>
+                <div class="meta-sep"></div>
+                <div class="meta-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    {{ order_instance.order.created_at|localtime|timesince }} ago
                 </div>
             </div>
 
+            <!-- Card Body: Items -->
+            <div class="order-card-body">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_instance.items %}
+                        <tr>
+                            <td>
+                                <div class="item-name-cell">
+                                    <span class="item-qty">{{ item.quantity }}x</span>
+                                    {{ item.item.name }}
+                                </div>
+                            </td>
+                            <td>Rs {{ item.item.price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="order-total">
+                    <span class="total-label">Total</span>
+                    <span class="total-amount">Rs {{ order_instance.order.total_amount }}</span>
+                </div>
+            </div>
+
+            <!-- Accept / Reject -->
+            {% if order_instance.order.status == order_status.PENDING %}
+            <div style="padding:1rem 1.5rem;border-top:1px solid var(--border);background:#fffbeb;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                <div style="font-size:0.85rem;font-weight:600;color:var(--amber-dark);">
+                    ⏳ New order waiting for your confirmation
+                </div>
+                <div style="display:flex;gap:0.6rem;">
+                    <form method="POST" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="order_pk" value="{{ order_instance.order.pk }}">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.55rem 1.1rem;background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
+                            ✕ Reject
+                        </button>
+                    </form>
+                    <form method="POST" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="order_pk" value="{{ order_instance.order.pk }}">
+                        <input type="hidden" name="action" value="accept">
+                        <button type="submit" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.55rem 1.1rem;background:#d1fae5;color:#059669;border:1.5px solid #6ee7b7;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
+                            ✓ Accept Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            {% if order_instance.order.status == order_status.PREPARING and not order_instance.order.rider %}
+            <div style="padding:1rem 1.5rem;border-top:1px solid var(--border);background:#fffbeb;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;font-weight:600;color:#d97706;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    No rider available — tap retry to find one
+                </div>
+                <form method="POST" style="margin:0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_pk" value="{{ order_instance.order.pk }}">
+                    <input type="hidden" name="action" value="retry_rider">
+                    <button type="submit" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.1rem;background:#dbeafe;color:#2563eb;border:1.5px solid #93c5fd;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;">
+                            <polyline points="23 4 23 10 17 10"/>
+                            <path d="M20.49 15a9 9 0 1 1-.09-7.18"/>
+                        </svg>
+                        Retry finding rider
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            <!-- Card Footer: contacts + order id -->
+            <div class="order-card-footer">
+
+                <div class="contact-chips">
+                    {% if order_instance.order.rider %}
+                    <div class="contact-chip rider">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.38 2 2 0 0 1 3.58 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.07-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        Rider: {{ order_instance.order.rider.phone }}
+                    </div>
+                    {% else %}
+                    <div class="contact-chip rider" style="opacity:0.6;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        No rider assigned
+                    </div>
+                    {% endif %}
+                    <div class="contact-chip customer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Customer: {{ order_instance.order.user.phone }}
+                    </div>
+                </div>
+
+                <div class="order-id-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    #{{ order_instance.order.pk }}
+                </div>
+
+            </div>
+        </div>
+        {% endwith %}
         {% endfor %}
-
-
     </div>
+    {% endif %}
+
+</div>
+
+<script>
+    const cards = document.querySelectorAll('.order-card');
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) e.target.classList.add('visible');
+        });
+    }, { threshold: 0.08 });
+
+    cards.forEach((card, i) => {
+        card.style.transitionDelay = `${i * 0.08}s`;
+        obs.observe(card);
+    });
+
+    // Auto-refresh if any active orders exist
+    const bars = [...document.querySelectorAll('.order-card-bar')];
+    const hasActive = bars.some(el =>
+        ['pending','preparing','on_the_way','rider_on_way'].some(s => el.classList.contains(s))
+    );
+    if (hasActive) setTimeout(() => location.reload(), 10000);
+</script>
 {% endblock %}

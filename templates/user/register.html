@@ -1,128 +1,468 @@
 {% load static %}
-
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-
-    <title>User Login</title>
-
+    <link rel="icon" type="image/x-icon" href="{% static 'icons/favicon512x512.png' %}">
+    <title>Register — Pizza'O Clock</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        *, ::after, ::before { box-sizing: border-box; }
 
+        :root {
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --amber-dark: #d97706;
+            --dark: #1c1917;
+            --mid: #57534e;
+            --muted: #a8a29e;
+            --light: #fafaf9;
+            --border: #e7e5e4;
+        }
 
-        .rounded-elem {
-            border-radius: 2rem;
+        body {
+            margin: 0;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--light);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -120px; left: -120px;
+            width: 480px; height: 480px;
+            background: radial-gradient(circle, rgba(245,158,11,0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -120px; right: -120px;
+            width: 480px; height: 480px;
+            background: radial-gradient(circle, rgba(28,25,23,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* ── WRAPPER ── */
+        .login-wrap {
+            display: flex;
+            width: 100%;
+            max-width: 980px;
+            min-height: 580px;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.12);
+            margin: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── LEFT DARK PANEL ── */
+        .login-panel {
+            flex: 1;
+            background: var(--dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-panel::before {
+            content: '';
+            position: absolute;
+            top: -80px; right: -80px;
+            width: 320px; height: 320px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.12);
+        }
+
+        .login-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; left: -60px;
+            width: 240px; height: 240px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.07);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--amber);
+        }
+
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: white;
+            letter-spacing: 0.02em;
+        }
+
+        .panel-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 3vw, 2.6rem);
+            color: white;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-title em {
+            color: var(--amber);
+            font-style: italic;
+        }
+
+        .panel-desc {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            max-width: 300px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-tag {
+            margin-top: 2.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(245,158,11,0.15);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 50px;
+            padding: 0.45rem 1rem;
+            color: var(--amber);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── RIGHT FORM PANEL ── */
+        .form-panel {
+            flex: 1.1;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 3rem 3.5rem;
+            overflow-y: auto;
+        }
+
+        .form-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            color: var(--dark);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ── ERROR ── */
+        .error-msg {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 0.65rem 1rem;
+            font-size: 0.85rem;
+            color: #dc2626;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ── FORM ROWS ── */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+
+        .field-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--mid);
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.03em;
+        }
+
+        .field-wrap {
+            position: relative;
+        }
+
+        .field-wrap svg {
+            position: absolute;
+            left: 0.9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px; height: 15px;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .field-group input {
+            width: 100%;
+            padding: 0.85rem 1.1rem 0.85rem 2.5rem;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            color: var(--dark);
+            background: var(--light);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .field-group input:focus {
+            border-color: var(--amber);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+        }
+
+        .field-group input::placeholder { color: #c4bfbb; }
+
+        /* ── DIVIDER ── */
+        .form-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 1rem 0 1.25rem;
+        }
+
+        /* ── TERMS ── */
+        .terms-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .terms-checkbox {
+            width: 16px; height: 16px;
+            accent-color: var(--amber);
+            margin-top: 3px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .terms-label {
+            font-size: 0.85rem;
+            color: var(--mid);
+            line-height: 1.5;
+        }
+
+        .terms-label a {
+            color: var(--amber-dark);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .terms-label a:hover { text-decoration: underline; }
+
+        /* ── SUBMIT ── */
+        .submit-btn {
+            width: 100%;
+            padding: 0.95rem;
+            background: var(--amber);
+            color: var(--dark);
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: var(--amber-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(217,119,6,0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── LOGIN LINK ── */
+        .register-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+
+        .register-link a {
+            color: var(--dark);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .register-link a:hover { color: var(--amber-dark); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 700px) {
+            .login-panel { display: none; }
+            .login-wrap { margin: 1rem; border-radius: 20px; }
+            .form-panel { padding: 2.5rem 1.75rem; }
         }
     </style>
 </head>
 <body>
 
-<section class="min-vh-100 p-4" style="background-color: #eee;">
-    <div class="container">
-        <div class="row d-flex justify-content-center align-items-center">
-            <div class="col-lg-12 col-xl-11">
-                <div class="card text-black" style="border-radius: 25px;">
-                    <div class="card-body ">
-                        <div class="row justify-content-center">
-                            <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
+<div class="login-wrap">
 
-                                <p class="text-center h1 fw-bold mx-1 mx-md-4">Register</p>
+    <!-- LEFT: Dark Panel (matches login.html exactly) -->
+    <div class="login-panel">
+        <div class="brand">
+            <div class="brand-dot"></div>
+            <span class="brand-name">Pizza'O Clock</span>
+        </div>
+        <h1 class="panel-title">
+            Join the<br><em>tastiest</em><br>community.
+        </h1>
+        <p class="panel-desc">
+            Create your free account and start ordering from 2000+ restaurants across Pakistan in minutes.
+        </p>
+        <div class="panel-tag">
+            🍕 2000+ restaurants across Pakistan
+        </div>
+    </div>
 
-                                <form method="POST" action="{% url 'user:register' %}" class="mx-1 mx-md-4">
-                                    {% csrf_token %}
+    <!-- RIGHT: Form Panel (matches login.html structure) -->
+    <div class="form-panel">
+        <div class="form-title">Create account</div>
+        <div class="form-sub">Fill in your details to get started</div>
 
-                                    {% if error %}
-                                        <div class="bg-danger p-2 rounded text-white m-2 mx-3">
-                                            {{ error }}
-                                        </div>
-                                    {% endif %}
+        {% if error %}
+        <div class="error-msg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ error }}
+        </div>
+        {% endif %}
 
-                                    <div class="d-flex flex-row align-items-center mb-4">
-                                        <i class="fas fa-user fa-lg me-3 fa-fw"></i>
-                                        <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                                            <label class="form-label" for="form3Example1c">First Name</label>
-                                            <input required name="first_name" type="text" class="form-control"/>
-                                        </div>
-                                    </div>
+        <form method="POST" action="{% url 'user:register' %}">
+            {% csrf_token %}
 
-                                    <div class="d-flex flex-row align-items-center mb-4">
-                                        <i class="fas fa-user fa-lg me-3 fa-fw"></i>
-                                        <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                                            <label class="form-label" for="form3Example1c">Last Name</label>
-                                            <input required name="last_name" type="text" class="form-control"/>
-                                        </div>
-                                    </div>
+            <!-- Name row -->
+            <div class="form-row">
+                <div class="field-group">
+                    <label for="first_name">First Name</label>
+                    <div class="field-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <input required id="first_name" name="first_name" type="text" placeholder="Ali">
+                    </div>
+                </div>
 
-                                    <div class="d-flex flex-row align-items-center mb-4">
-                                        <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
-                                        <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                                            <label class="form-label" for="form3Example3c">Your Email</label>
-                                            <input required type="email" name="email" class="form-control"/>
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex flex-row align-items-center mb-4">
-                                        <i class="fas fa-lock fa-lg me-3 fa-fw"></i>
-                                        <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                                            <label class="form-label" for="form3Example4c">Password</label>
-                                            <input required minlength="8" name="password" type="password" class="form-control"/>
-                                        </div>
-                                    </div>
-
-
-                                    <div class="form-check d-flex justify-content-center mb-5">
-                                        <input class="form-check-input me-2 checkbox-terms-conditions" type="checkbox"
-                                               value="" checked
-                                        />
-                                        <label class="form-check-label" for="form2Example3">
-                                            I agree all statements in <a href="#!">Terms of service</a>
-                                        </label>
-                                    </div>
-
-                                    <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
-                                        <button type="submit"
-                                                class="btn-submit btn btn-warning text-white btn-lg">Register
-                                        </button>
-                                    </div>
-
-
-                                </form>
-
-                            </div>
-                            <div class="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
-
-                                <img src="{% static 'images/food-delivery-app.jpg' %}"
-                                     class="img-fluid" alt="Sample image">
-
-                            </div>
-                        </div>
+                <div class="field-group">
+                    <label for="last_name">Last Name</label>
+                    <div class="field-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <input required id="last_name" name="last_name" type="text" placeholder="Khan">
                     </div>
                 </div>
             </div>
+
+            <!-- Email -->
+            <div class="field-group">
+                <label for="email">Email address</label>
+                <div class="field-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <input required id="email" name="email" type="email" placeholder="ali@example.com">
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="field-group">
+                <label for="password">Password</label>
+                <div class="field-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <input required id="password" name="password" type="password" minlength="8" placeholder="Min. 8 characters">
+                </div>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <!-- Terms -->
+            <div class="terms-row">
+                <input class="terms-checkbox" type="checkbox" id="terms" checked>
+                <label class="terms-label" for="terms">
+                    I agree to the <a href="#!">Terms of Service</a> and <a href="#!">Privacy Policy</a>
+                </label>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn">
+                Create Account
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                     stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </button>
+        </form>
+
+        <div class="register-link">
+            Already have an account? <a href="{% url 'user:login' %}">Sign in</a>
         </div>
     </div>
-</section>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-        crossorigin="anonymous"></script>
+</div>
 
 <script>
-
-    const checkbox = document.querySelector('input.checkbox-terms-conditions')
-    const btn = document.querySelector('.btn-submit')
-
-    if (checkbox.checked === false) {
-        btn.setAttribute('disabled', '0')
-    }
-
-    checkbox.addEventListener('click', () => {
-        btn.toggleAttribute('disabled')
-    })
+    const checkbox = document.getElementById('terms');
+    const btn = document.getElementById('submit-btn');
+    function syncBtn() { btn.disabled = !checkbox.checked; }
+    syncBtn();
+    checkbox.addEventListener('change', syncBtn);
 </script>
+
 </body>
 </html>

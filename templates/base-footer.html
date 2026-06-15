@@ -1,103 +1,136 @@
-<footer
-        class="text-center text-lg-start text-white bg-danger"
-        {#            style="background-color: #45526e"#}
->
-    <!-- Grid container -->
-    <div class="container p-4 pb-0">
-        <!-- Section: Links -->
-        <section class="">
-            <!--Grid row-->
-            <div class="row">
-                <!-- Grid column -->
-                <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
-                    <h6 class="text-uppercase mb-4 font-weight-bold">
-                        FreshBite
-                    </h6>
-                    <p>
-                        FreshBite is dedicated to exceptional service and quality. Our team ensures your
-                        satisfaction from order to delivery.
-                    </p>
-                </div>
-                <!-- Grid column -->
+{% load static %}
 
-                <hr class="w-100 clearfix d-md-none"/>
+<footer style="background: #1c1917; color: #a8a29e; font-size: 0.9rem; padding: 3.5rem 1.5rem 0;">
+  <div style="max-width: 1100px; margin: 0 auto;">
 
-                <!-- Grid column -->
-                <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mt-3">
-                    <h6 class="text-uppercase mb-4 font-weight-bold">Products</h6>
-                    <p>
-                        <a class="text-white">Asian Cuisine</a>
-                    </p>
-                    <p>
-                        <a class="text-white">Mexican Cuisine</a>
-                    </p>
-                    <p>
-                        <a class="text-white">Italian Cuisine</a>
-                    </p>
-                    <p>
-                        <a class="text-white">Deserts</a>
-                    </p>
-                </div>
-                <!-- Grid column -->
+    <div class="row g-5 pb-5">
 
-                <hr class="w-100 clearfix d-md-none"/>
+      <!-- Brand col -->
+      <div class="col-lg-4 col-md-6">
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+          <div
+            style="width: 34px; height: 34px; background: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <img src="{% static 'images/food-dish-svgrepo-com.svg' %}" alt="" width="18" height="18"
+              style="filter: invert(1) brightness(0);">
+          </div>
+          <span
+            style="font-family: 'Playfair Display', Georgia, serif; font-size: 1rem; color: white; font-weight: 700;">Pizza'O
+            Clock</span>
+        </div>
+        <p style="line-height: 1.75; color: #78716c; font-size: 0.875rem;">
+          Dedicated to exceptional service and quality. Our team ensures your satisfaction from order to delivery.
+        </p>
+        <!-- Social icons -->
+        <div style="display:flex;gap:0.6rem;margin-top:1.25rem;">
 
-                <!-- Grid column -->
-                <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mt-3">
-                    <h6 class="text-uppercase mb-4 font-weight-bold">
-                        Useful links
-                    </h6>
-                    <p>
-                        <a class="text-white">FreshBite</a>
-                    </p>
-                    <p>
-                        <a class="text-white">Become an Affiliate</a>
-                    </p>
-                    <p>
-                        <a class="text-white">Shipping Rates</a>
-                    </p>
-                    <p>
-                        <a class="text-white">Help</a>
-                    </p>
-                </div>
+          <!-- Instagram -->
+          <a href="#"
+            style="width:32px;height:32px;border-radius:50%;border:1px solid #3d3836;display:flex;align-items:center;justify-content:center;color:#a8a29e;text-decoration:none;transition:all 0.2s;"
+            onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'"
+            onmouseout="this.style.borderColor='#3d3836';this.style.color='#a8a29e'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+          </a>
 
-                <!-- Grid column -->
-                <hr class="w-100 clearfix d-md-none"/>
+          <!-- Facebook -->
+          <a href="#"
+            style="width:32px;height:32px;border-radius:50%;border:1px solid #3d3836;display:flex;align-items:center;justify-content:center;color:#a8a29e;text-decoration:none;transition:all 0.2s;"
+            onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'"
+            onmouseout="this.style.borderColor='#3d3836';this.style.color='#a8a29e'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+            </svg>
+          </a>
 
-                <!-- Grid column -->
-                <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
-                    <h6 class="text-uppercase mb-4 font-weight-bold">Contact</h6>
-                    <p><i class="fas fa-home mr-3"></i> Lahore, Pakistan</p>
-                    <p><i class="fas fa-envelope mr-3"></i> info@freshbite.com</p>
-                    <p><i class="fas fa-phone mr-3"></i> + 01 234 567 88</p>
-                    <p><i class="fas fa-print mr-3"></i> + 01 234 567 89</p>
-                </div>
-                <!-- Grid column -->
-            </div>
-            <!--Grid row-->
-        </section>
-        <!-- Section: Links -->
+          <!-- Twitter / X -->
+          <a href="#"
+            style="width:32px;height:32px;border-radius:50%;border:1px solid #3d3836;display:flex;align-items:center;justify-content:center;color:#a8a29e;text-decoration:none;transition:all 0.2s;"
+            onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'"
+            onmouseout="this.style.borderColor='#3d3836';this.style.color='#a8a29e'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
+            </svg>
+          </a>
 
-        <hr class="my-3">
+        </div>
+      </div>
 
-        <!-- Section: Copyright -->
-        <section class="p-3 pt-0">
-            <div class="row d-flex align-items-center">
-                <!-- Grid column -->
-                <div class="col-md-7 col-lg-8 text-center text-md-start">
-                    <!-- Copyright -->
-                    <div class="p-3">
-                        © 2020 Copyright:
-                        <a class="text-white" href="https://example.com/"
-                        >FreshBite</a
-                        >
-                    </div>
-                    <!-- Copyright -->
-                </div>
-                <!-- Grid column -->
-            </div>
-        </section>
-        <!-- Section: Copyright -->
+      <!-- Cuisines col -->
+      <div class="col-lg-2 col-md-6">
+        <p
+          style="color:#f59e0b;font-size:0.7rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 1rem;">
+          Cuisines</p>
+        <div style="display:flex;flex-direction:column;gap:0.6rem;">
+          {% for cuisine in "AMID" %}
+          <a href="#" style="color:#78716c;text-decoration:none;font-size:0.875rem;transition:color 0.2s;"
+            onmouseover="this.style.color='white'" onmouseout="this.style.color='#78716c'">
+            {% if forloop.counter == 1 %}Asian Cuisine
+            {% elif forloop.counter == 2 %}Mexican Cuisine
+            {% elif forloop.counter == 3 %}Italian Cuisine
+            {% else %}Desserts{% endif %}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Links col -->
+      <div class="col-lg-2 col-md-6">
+        <p
+          style="color:#f59e0b;font-size:0.7rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 1rem;">
+          Links</p>
+        <div style="display:flex;flex-direction:column;gap:0.6rem;">
+          <a href="{% url 'landingapp:landing_page' %}" style="color:#78716c;text-decoration:none;font-size:0.875rem;"
+            onmouseover="this.style.color='white'" onmouseout="this.style.color='#78716c'">About us</a>
+          <a href="#" style="color:#78716c;text-decoration:none;font-size:0.875rem;"
+            onmouseover="this.style.color='white'" onmouseout="this.style.color='#78716c'">Become an Affiliate</a>
+          <a href="#" style="color:#78716c;text-decoration:none;font-size:0.875rem;"
+            onmouseover="this.style.color='white'" onmouseout="this.style.color='#78716c'">Shipping Rates</a>
+          <a href="{% url 'user:faq' %}" style="color:#78716c;text-decoration:none;font-size:0.875rem;"
+            onmouseover="this.style.color='white'" onmouseout="this.style.color='#78716c'">Help &amp; FAQ</a>
+        </div>
+      </div>
+
+      <!-- Contact col -->
+      <div class="col-lg-4 col-md-6">
+        <p
+          style="color:#f59e0b;font-size:0.7rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 1rem;">
+          Contact</p>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div style="display:flex;align-items:flex-start;gap:0.6rem;">
+            <i class="fas fa-map-marker-alt" style="font-size:14px;color:#f59e0b;margin-top:2px;flex-shrink:0;"></i>
+            <span style="color:#78716c;font-size:0.875rem;">Lahore, Pakistan</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:0.6rem;">
+            <i class="fas fa-envelope" style="font-size:14px;color:#f59e0b;margin-top:2px;flex-shrink:0;"></i>
+            <span style="color:#78716c;font-size:0.875rem;">info@pizzaoclock.com</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:0.6rem;">
+            <i class="fas fa-phone" style="font-size:14px;color:#f59e0b;margin-top:2px;flex-shrink:0;"></i>
+            <span style="color:#78716c;font-size:0.875rem;">+92 300 123 4567</span>
+          </div>
+        </div>
+      </div>
+
     </div>
-    <!-- Grid container -->
+
+    <!-- Bottom bar -->
+    <div
+      style="border-top:1px solid #292524;padding:1.25rem 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+      <p style="margin:0;font-size:0.8rem;color:#57534e;">© 2026 Pizza'O Clock. All rights reserved.</p>
+      <div style="display:flex;gap:1.25rem;">
+        <a href="#" style="font-size:0.8rem;color:#57534e;text-decoration:none;"
+          onmouseover="this.style.color='#a8a29e'" onmouseout="this.style.color='#57534e'">Privacy Policy</a>
+        <a href="#" style="font-size:0.8rem;color:#57534e;text-decoration:none;"
+          onmouseover="this.style.color='#a8a29e'" onmouseout="this.style.color='#57534e'">Terms of Service</a>
+      </div>
+    </div>
+
+  </div>
 </footer>

@@ -2,29 +2,95 @@
      hx-get="{% url 'user:livechat_with_rider' order_id=order.id %}?only-messages=true"
      hx-swap="outerHTML"
      hx-trigger="load delay:2s"
+     style="
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.25rem;
+        font-family: 'DM Sans', sans-serif;
+     "
 >
-    <div class=" d-flex flex-column align-items-start">
-        <div class="px-3 fw-bold">{{ receiver.first_name }} at {{ receiver.email }}</div>
-        <div class="rounded-elem p-3 border border-warning d-flex align-items-center">
-            <div>Assalamu Alaikum Sir, How can I help you today?</div>
-        </div>
+
+    <!-- Default greeting bubble -->
+    <div style="display:flex; flex-direction:column; align-items:flex-start; gap:0.3rem;">
+        <span style="
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #888;
+            padding: 0 0.25rem;
+        ">{{ receiver.first_name }} &middot; {{ receiver.email }}</span>
+
+        <div style="
+            background: white;
+            border: 1.5px solid rgba(28,58,43,0.12);
+            border-radius: 4px 16px 16px 16px;
+            padding: 0.75rem 1.1rem;
+            max-width: 75%;
+            font-size: 0.92rem;
+            color: #4A4A4A;
+            font-weight: 300;
+            line-height: 1.55;
+            box-shadow: 0 2px 8px rgba(28,58,43,0.06);
+        ">Assalamu Alaikum Sir, How can I help you today?</div>
     </div>
 
     {% for message in messages %}
         {% if message.sender == request.user %}
-            <div class="d-flex flex-column align-items-end">
-                <div class="px-3 fw-bold">You</div>
-                <div class="rounded-elem p-3 bg-warning d-flex align-items-center">
-                    <div>{{ message.text }}</div>
-                </div>
+
+            <!-- Sent message (right) -->
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.3rem;">
+                <span style="
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                    color: #888;
+                    padding: 0 0.25rem;
+                ">You</span>
+
+                <div style="
+                    background: #1C3A2B;
+                    border-radius: 16px 4px 16px 16px;
+                    padding: 0.75rem 1.1rem;
+                    max-width: 75%;
+                    font-size: 0.92rem;
+                    color: #FAF7F2;
+                    font-weight: 400;
+                    line-height: 1.55;
+                    box-shadow: 0 2px 8px rgba(28,58,43,0.15);
+                ">{{ message.text }}</div>
             </div>
+
         {% else %}
-            <div class=" d-flex flex-column align-items-start">
-                <div class="px-3 fw-bold">{{ receiver.first_name }}</div>
-                <div class="rounded-elem p-3 border border-warning d-flex align-items-center">
-                    <div>{{ message.text }}</div>
-                </div>
+
+            <!-- Received message (left) -->
+            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:0.3rem;">
+                <span style="
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                    color: #888;
+                    padding: 0 0.25rem;
+                ">{{ receiver.first_name }}</span>
+
+                <div style="
+                    background: white;
+                    border: 1.5px solid rgba(28,58,43,0.12);
+                    border-radius: 4px 16px 16px 16px;
+                    padding: 0.75rem 1.1rem;
+                    max-width: 75%;
+                    font-size: 0.92rem;
+                    color: #4A4A4A;
+                    font-weight: 300;
+                    line-height: 1.55;
+                    box-shadow: 0 2px 8px rgba(28,58,43,0.06);
+                ">{{ message.text }}</div>
             </div>
+
         {% endif %}
     {% endfor %}
+
 </div>

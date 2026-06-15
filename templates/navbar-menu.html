@@ -1,38 +1,379 @@
 {% load static %}
 
-<nav class="navbar navbar-expand-lg navbar-light  bg-white text-secondary sticky-top shadow ">
-    <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center text-warning" style="font-weight: bold"
-           href="{% url 'landingapp:landing_page' %}">
-            <img src="{% static 'images/food-dish-svgrepo-com.svg' %}" alt="fresh-bite icon" height="40" width="40"
-                 class="ms-2">
-            Fresh Bite
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap');
+
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+    }
+
+    .site-nav {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: rgba(250, 250, 249, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .nav-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+
+    .nav-brand-icon {
+        width: 36px; height: 36px;
+        background: var(--amber);
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        transition: transform 0.2s;
+    }
+
+    .nav-brand:hover .nav-brand-icon { transform: rotate(-8deg) scale(1.05); }
+
+    .nav-brand-icon img {
+        width: 22px; height: 22px;
+        filter: brightness(0);
+    }
+
+    .nav-brand-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--dark);
+        line-height: 1;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Base link — same as user navbar */
+    .nav-links a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--mid);
+        text-decoration: none;
+        transition: all 0.18s ease;
+        white-space: nowrap;
+        border: 1px solid transparent;
+    }
+
+    .nav-links a:hover {
+        background: var(--amber-light);
+        color: var(--amber-dark);
+    }
+
+    .nav-links a svg {
+        width: 14px; height: 14px;
+        flex-shrink: 0;
+    }
+
+    /* Divider */
+    .nav-divider {
+        width: 1px;
+        height: 20px;
+        background: var(--border);
+        margin: 0 0.2rem;
+        flex-shrink: 0;
+    }
+
+    /* Sign in — outlined */
+    .nav-signin a {
+        border-color: var(--border) !important;
+        color: var(--mid) !important;
+    }
+
+    .nav-signin a:hover {
+        border-color: var(--amber) !important;
+        background: var(--amber-light) !important;
+        color: var(--amber-dark) !important;
+    }
+
+    /* Sign up — filled amber, same style as user navbar logout */
+    .nav-signup a {
+        background: var(--amber) !important;
+        color: var(--dark) !important;
+        font-weight: 600 !important;
+        border-color: var(--amber) !important;
+    }
+
+    .nav-signup a:hover {
+        background: var(--amber-dark) !important;
+        border-color: var(--amber-dark) !important;
+        color: var(--dark) !important;
+    }
+
+    /* Hamburger toggle */
+    .nav-toggle {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        width: 36px; height: 36px;
+        background: none;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        cursor: pointer;
+        padding: 0 8px;
+        transition: border-color 0.2s;
+        flex-shrink: 0;
+    }
+
+    .nav-toggle:hover { border-color: var(--amber); }
+
+    .nav-toggle span {
+        display: block;
+        width: 100%;
+        height: 1.5px;
+        background: var(--dark);
+        border-radius: 2px;
+        transition: all 0.25s ease;
+    }
+
+    .nav-toggle.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* Mobile drawer */
+    .nav-drawer {
+        display: none;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 1rem 1.5rem 1.25rem;
+        border-top: 1px solid var(--border);
+        background: rgba(250,250,249,0.97);
+        backdrop-filter: blur(12px);
+        animation: drawerSlide 0.2s ease;
+    }
+
+    @keyframes drawerSlide {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-drawer.open { display: flex; }
+
+    .drawer-link {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.7rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--mid);
+        text-decoration: none;
+        transition: all 0.15s;
+    }
+
+    .drawer-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .drawer-link:hover {
+        background: var(--amber-light);
+        color: var(--amber-dark);
+    }
+
+    /* Sign up in drawer — amber filled */
+    .drawer-signup {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.7rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--dark);
+        background: var(--amber);
+        text-decoration: none;
+        margin-top: 0.25rem;
+        transition: background 0.15s;
+    }
+
+    .drawer-signup:hover { background: var(--amber-dark); color: var(--dark); }
+    .drawer-signup svg { width: 16px; height: 16px; }
+
+    @media (max-width: 768px) {
+        .nav-links { display: none; }
+        .nav-toggle { display: flex; }
+    }
+</style>
+
+<nav class="site-nav">
+    <div class="nav-inner">
+
+        <!-- Brand -->
+        <a class="nav-brand" href="{% url 'landingapp:landing_page' %}">
+            <div class="nav-brand-icon">
+                <img src="{% static 'images/food-dish-svgrepo-com.svg' %}" alt="Pizza'O Clock">
+            </div>
+            <span class="nav-brand-name">Pizza'O Clock</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
-                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+
+        <!-- Desktop links -->
+        <ul class="nav-links">
+            <li>
+                <a href="{% url 'user:faq' %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    FAQ
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'user:livechat' %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Live Chat
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'restaurant:login' %}">
+                    For restaurants →
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'rider:login' %}">
+                    For riders →
+                </a>
+            </li>
+
+            <li class="nav-divider" aria-hidden="true"></li>
+
+            <li class="nav-signin">
+                <a href="{% url 'user:login' %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10 17 15 12 10 7"/>
+                        <line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                    Sign in
+                </a>
+            </li>
+            <li class="nav-signup">
+                <a href="{% url 'user:register' %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <line x1="19" y1="8" x2="19" y2="14"/>
+                        <line x1="22" y1="11" x2="16" y2="11"/>
+                    </svg>
+                    Sign up
+                </a>
+            </li>
+        </ul>
+
+        <!-- Hamburger -->
+        <button class="nav-toggle" id="nav-toggle-guest" aria-label="Toggle menu" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav ms-auto">
 
-                <li class="nav-item m-1">
-                    <a href="{% url 'user:faq' %}" class="btn btn-outline-warning text-dark fw-bolder ">FAQ</a>
-                </li>
+    </div>
 
-
-                <li class="nav-item m-1">
-                    <a href="{% url 'user:livechat' %}"
-                       class="btn btn-outline-warning text-dark fw-bolder ">Live Chat</a>
-                </li>
-                <li class="nav-item m-1">
-                    <a href="{% url 'user:login' %}" class="btn btn-outline-warning text-dark fw-bolder">Login</a>
-                </li>
-                <li class="nav-item m-1">
-                    <a href="{% url 'user:register' %}" class="btn btn-outline-warning text-dark fw-bolder">Sign Up</a>
-                </li>
-
-            </ul>
-
-        </div>
+    <!-- Mobile drawer -->
+    <div class="nav-drawer" id="nav-drawer-guest">
+        <a class="drawer-link" href="{% url 'user:faq' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            FAQ
+        </a>
+        <a class="drawer-link" href="{% url 'user:livechat' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Live Chat
+        </a>
+        <a class="drawer-link" href="{% url 'restaurant:login' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 11l19-9-9 19-2-8-8-2z"/>
+            </svg>
+            For restaurants
+        </a>
+        <a class="drawer-link" href="{% url 'rider:login' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            For riders
+        </a>
+        <a class="drawer-link" href="{% url 'user:login' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                <polyline points="10 17 15 12 10 7"/>
+                <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+            Sign in
+        </a>
+        <a class="drawer-signup" href="{% url 'user:register' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <line x1="19" y1="8" x2="19" y2="14"/>
+                <line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
+            Sign up free
+        </a>
     </div>
 </nav>
+
+<script>
+    const toggle = document.getElementById('nav-toggle-guest');
+    const drawer = document.getElementById('nav-drawer-guest');
+
+    toggle.addEventListener('click', () => {
+        const isOpen = drawer.classList.toggle('open');
+        toggle.classList.toggle('open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen);
+    });
+
+    drawer.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            drawer.classList.remove('open');
+            toggle.classList.remove('open');
+            toggle.setAttribute('aria-expanded', false);
+        });
+    });
+</script>

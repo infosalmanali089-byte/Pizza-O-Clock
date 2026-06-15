@@ -1,53 +1,361 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
-{% block title %}
-    Rider Reviews
-{% endblock %}
+{% block title %}Rider Reviews{% endblock %}
 
 {% block styles %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <style>
-        .main-container {
-            min-height: 100vh;
+        :root {
+            --cream: #FAF7F2;
+            --cream-dark: #F0EAE0;
+            --forest: #1C3A2B;
+            --forest-light: #2A5240;
+            --terra: #C4622D;
+            --terra-light: #E07848;
+            --terra-pale: rgba(196,98,45,0.08);
+            --text-dark: #1A1A1A;
+            --text-mid: #4A4A4A;
+            --text-soft: #888;
+            --border: rgba(28,58,43,0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+        }
+
+        /* ── HERO ── */
+        .reviews-hero {
+            background: var(--forest);
+            padding: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 6vw, 5rem);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reviews-hero::before {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: rgba(196,98,45,0.12);
+            top: -120px; right: -80px;
+            pointer-events: none;
+        }
+
+        .reviews-hero::after {
+            content: '';
+            position: absolute;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: rgba(250,247,242,0.04);
+            bottom: -60px; left: 10%;
+            pointer-events: none;
+        }
+
+        .hero-inner {
+            position: relative;
+            z-index: 2;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--terra-light);
+            background: rgba(196,98,45,0.15);
+            border: 1px solid rgba(196,98,45,0.25);
+            border-radius: 100px;
+            padding: 5px 14px;
+            margin-bottom: 1.25rem;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 800;
+            color: var(--cream);
+            line-height: 1.1;
+            margin-bottom: 1.25rem;
+            text-transform: capitalize;
+        }
+
+        .hero-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .rating-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(250,247,242,0.08);
+            border: 1px solid rgba(250,247,242,0.15);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 1rem;
+        }
+
+        .rating-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--cream);
+        }
+
+        .rating-label {
+            font-size: 0.8rem;
+            color: rgba(250,247,242,0.5);
+        }
+
+        .review-count-badge {
+            font-size: 0.85rem;
+            color: rgba(250,247,242,0.5);
+        }
+
+        /* ── CONTENT ── */
+        .reviews-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 6vw, 5rem);
+        }
+
+        .reviews-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .reviews-section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--forest);
+        }
+
+        .reviews-count-pill {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--terra);
+            background: var(--terra-pale);
+            border: 1px solid rgba(196,98,45,0.15);
+            border-radius: 100px;
+            padding: 4px 12px;
+        }
+
+        /* ── REVIEW CARDS ── */
+        .reviews-grid {
             display: flex;
             flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .review-card {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            display: flex;
+            gap: 1.25rem;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.4s ease forwards;
+        }
+
+        .review-card:hover {
+            border-color: rgba(196,98,45,0.25);
+            box-shadow: 0 8px 24px rgba(28,58,43,0.08);
+            transform: translateY(-2px);
+        }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .review-card:nth-child(1) { animation-delay: 0.05s; }
+        .review-card:nth-child(2) { animation-delay: 0.1s; }
+        .review-card:nth-child(3) { animation-delay: 0.15s; }
+        .review-card:nth-child(4) { animation-delay: 0.2s; }
+        .review-card:nth-child(5) { animation-delay: 0.25s; }
+        .review-card:nth-child(n+6) { animation-delay: 0.3s; }
+
+        .review-avatar { flex-shrink: 0; }
+
+        .avatar-img {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--cream-dark);
+        }
+
+        .avatar-placeholder {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: var(--forest);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--cream);
+            flex-shrink: 0;
+        }
+
+        .review-body { flex: 1; min-width: 0; }
+
+        .review-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
             gap: 1rem;
-            margin: 1rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
         }
 
-        .review {
-            border-radius: 1rem;
-            padding: 1rem;
-            margin: 0.5rem;
+        .reviewer-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-dark);
         }
 
-        h2 {
-            text-transform: capitalize;
+        .reviewer-label {
+            font-size: 0.8rem;
+            color: var(--text-soft);
+            font-weight: 300;
+        }
+
+        .review-message {
+            font-size: 0.92rem;
+            color: var(--text-mid);
+            line-height: 1.7;
+            font-weight: 300;
+            margin-top: 0.6rem;
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: white;
+            border: 1.5px dashed var(--border);
+            border-radius: var(--radius);
+        }
+
+        .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+
+        .empty-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--forest);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-sub {
+            font-size: 0.9rem;
+            color: var(--text-soft);
+            font-weight: 300;
+        }
+
+        @media (max-width: 576px) {
+            .review-card { flex-direction: column; gap: 1rem; }
+            .review-top { flex-direction: column; gap: 0.4rem; }
         }
     </style>
 {% endblock %}
 
 {% block content %}
-    <div class="main-container">
-        <h2>
-            <i class="fa-solid fa-bicycle"></i>
-            <span>{{ rider.first_name }}</span>
-        </h2>
-        {% for review in reviews %}
-            <div class="review border">
-                {% if review.order.user.profile_picture %}
-                    <img width="50" height="50" class="rounded-circle"
-                         src="{{ review.order.user.profile_picture.url }}">
-                {% endif %}
-                <div>
-                    <span>By <strong>{{ review.order.user.first_name }}</strong></span>
-                    <div>{% include 'show-stars.html' with rating=review.rating %}</div>
-                    <p>{{ review.message }}</p>
-                </div>
-            </div>
-        {% endfor %}
 
+    <!-- HERO -->
+    <div class="reviews-hero">
+        <div class="hero-inner">
+            <div class="hero-eyebrow">🚲 Rider</div>
+            <h1 class="hero-title">
+                <i class="fa-solid fa-bicycle" style="font-size:0.85em; margin-right:0.3rem; opacity:0.7;"></i>
+                {{ rider.first_name }}
+            </h1>
+            <div class="hero-meta">
+                <div class="rating-badge">
+                    <span class="rating-number">{{ rider.average_rating }}</span>
+                    <div>{% include 'show-stars.html' with rating=rider.average_rating %}</div>
+                    <span class="rating-label">avg rating</span>
+                </div>
+                <span class="review-count-badge">{{ reviews|length }} review{{ reviews|length|pluralize }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div class="reviews-content">
+        <div class="reviews-header">
+            <h2 class="reviews-section-title">Customer Reviews</h2>
+            {% if reviews %}
+            <span class="reviews-count-pill">{{ reviews|length }} review{{ reviews|length|pluralize }}</span>
+            {% endif %}
+        </div>
+
+        {% if reviews %}
+        <div class="reviews-grid">
+            {% for review in reviews %}
+            <div class="review-card">
+
+                <div class="review-avatar">
+                    {% if review.order.user.profile_picture %}
+                        <img class="avatar-img"
+                             src="{{ review.order.user.profile_picture.url }}"
+                             alt="{{ review.order.user.first_name }}">
+                    {% else %}
+                        <div class="avatar-placeholder">
+                            {{ review.order.user.first_name|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="review-body">
+                    <div class="review-top">
+                        <div>
+                            <span class="reviewer-label">Review by </span>
+                            <span class="reviewer-name">{{ review.order.user.first_name }}</span>
+                        </div>
+                        <div>{% include 'show-stars.html' with rating=review.rating %}</div>
+                    </div>
+                    {% if review.message %}
+                        <p class="review-message">{{ review.message }}</p>
+                    {% else %}
+                        <p class="review-message" style="font-style:italic; color:var(--text-soft);">No written review.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">💬</div>
+            <h3 class="empty-title">No reviews yet</h3>
+            <p class="empty-sub">{{ rider.first_name }} hasn't received any reviews yet.</p>
+        </div>
+        {% endif %}
 
     </div>
+
 {% endblock %}

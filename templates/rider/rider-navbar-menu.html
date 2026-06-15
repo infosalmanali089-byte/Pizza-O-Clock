@@ -1,43 +1,341 @@
 {% load static %}
 
-<nav class="navbar navbar-expand-lg navbar-light  bg-white text-secondary sticky-top shadow ">
-    <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center text-warning" style="font-weight: bold"
-           href="{% url 'landingapp:landing_page' %}">
-            <img src="{% static 'images/food-dish-svgrepo-com.svg' %}" alt="fresh-bite icon" height="40" width="40"
-                 class="ms-2">
-            Fresh Bite
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap');
+
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+    }
+
+    .site-nav {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: rgba(250, 250, 249, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .nav-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    /* ── BRAND ── */
+    .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+
+    .nav-brand-icon {
+        width: 36px; height: 36px;
+        background: var(--amber);
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        transition: transform 0.2s;
+    }
+
+    .nav-brand:hover .nav-brand-icon { transform: rotate(-8deg) scale(1.05); }
+
+    .nav-brand-icon img {
+        width: 22px; height: 22px;
+        filter: brightness(0);
+    }
+
+    .nav-brand-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--dark);
+        line-height: 1;
+    }
+
+    /* Rider role badge next to brand name */
+    .nav-role-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.6rem;
+        background: var(--amber-light);
+        border: 1px solid #fde68a;
+        border-radius: 50px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--amber-dark);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-left: 0.25rem;
+    }
+
+    /* ── DESKTOP LINKS ── */
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .nav-links a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--mid);
+        text-decoration: none;
+        transition: all 0.18s ease;
+        white-space: nowrap;
+    }
+
+    .nav-links a:hover {
+        background: var(--amber-light);
+        color: var(--amber-dark);
+    }
+
+    .nav-links a svg {
+        width: 14px; height: 14px;
+        flex-shrink: 0;
+    }
+
+    /* Logout — dark filled */
+    .nav-links .nav-logout a {
+        background: var(--dark);
+        color: white;
+        padding: 0.45rem 1rem;
+    }
+
+    .nav-links .nav-logout a:hover {
+        background: var(--amber-dark);
+        color: white;
+    }
+
+    /* ── HAMBURGER ── */
+    .nav-toggle {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        width: 36px; height: 36px;
+        background: none;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        cursor: pointer;
+        padding: 0 8px;
+        transition: border-color 0.2s;
+        flex-shrink: 0;
+    }
+
+    .nav-toggle:hover { border-color: var(--amber); }
+
+    .nav-toggle span {
+        display: block;
+        width: 100%;
+        height: 1.5px;
+        background: var(--dark);
+        border-radius: 2px;
+        transition: all 0.25s ease;
+    }
+
+    .nav-toggle.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* ── MOBILE DRAWER ── */
+    .nav-drawer {
+        display: none;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 1rem 1.5rem 1.25rem;
+        border-top: 1px solid var(--border);
+        background: rgba(250,250,249,0.97);
+        backdrop-filter: blur(12px);
+        animation: drawerSlide 0.2s ease;
+    }
+
+    @keyframes drawerSlide {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-drawer.open { display: flex; }
+
+    .drawer-link {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.7rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--mid);
+        text-decoration: none;
+        transition: all 0.15s;
+    }
+
+    .drawer-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .drawer-link:hover {
+        background: var(--amber-light);
+        color: var(--amber-dark);
+    }
+
+    .drawer-logout {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.7rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: white;
+        background: var(--dark);
+        text-decoration: none;
+        margin-top: 0.5rem;
+        transition: background 0.15s;
+    }
+
+    .drawer-logout:hover { background: var(--amber-dark); color: white; }
+    .drawer-logout svg { width: 16px; height: 16px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+        .nav-links { display: none; }
+        .nav-toggle { display: flex; }
+        .nav-role-badge { display: none; }
+    }
+</style>
+
+<nav class="site-nav">
+    <div class="nav-inner">
+
+        <!-- Brand -->
+        <a class="nav-brand" href="{% url 'landingapp:landing_page' %}">
+            <div class="nav-brand-icon">
+                <img src="{% static 'images/food-dish-svgrepo-com.svg' %}" alt="Pizza'O Clock">
+            </div>
+            <span class="nav-brand-name">Pizza'O Clock</span>
+            <span class="nav-role-badge">Rider</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
-                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+
+        <!-- Desktop links -->
+        <ul class="nav-links">
+            <li>
+                <a href="{% url 'rider:track_orders' %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                    Orders
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'user:faq' %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    FAQ
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'rider:edit_profile' %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Profile
+                </a>
+            </li>
+    
+            <li class="nav-logout">
+                <a href="{% url 'rider:login' %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Logout
+                </a>
+            </li>
+        </ul>
+
+        <!-- Hamburger -->
+        <button class="nav-toggle" id="rider-nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item m-1">
-                    <a href="{% url 'rider:track_orders' %}"
-                       class="btn btn-outline-warning text-dark fw-bolder ">Orders</a>
-                </li>
 
-                <li class="nav-item m-1">
-                    <a href="{% url 'user:faq' %}" class="btn btn-outline-warning text-dark fw-bolder ">FAQ</a>
-                </li>
+    </div>
 
-                <li class="nav-item m-1">
-                    <a href="{% url 'rider:edit_profile' %}"
-                       class="btn btn-outline-warning text-dark fw-bolder ">Profile</a>
-                </li>
-
-                <li class="nav-item m-1">
-                    <a href="{% url 'user:livechat' %}"
-                       class="btn btn-outline-warning text-dark fw-bolder ">Live Chat</a>
-                </li>
-
-                <li class="nav-item m-1">
-                    <a href="{% url 'rider:login' %}" class="btn btn-outline-warning text-dark fw-bolder">Logout</a>
-                </li>
-            </ul>
-
-        </div>
+    <!-- Mobile drawer -->
+    <div class="nav-drawer" id="rider-nav-drawer">
+        <a class="drawer-link" href="{% url 'rider:track_orders' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            Orders
+        </a>
+        <a class="drawer-link" href="{% url 'user:faq' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            FAQ
+        </a>
+        <a class="drawer-link" href="{% url 'rider:edit_profile' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            Profile
+        </a>
+        <a class="drawer-link" href="{% url 'user:livechat' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Live Chat
+        </a>
+        <a class="drawer-logout" href="{% url 'rider:login' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Logout
+        </a>
     </div>
 </nav>
+
+<script>
+    const riderToggle = document.getElementById('rider-nav-toggle');
+    const riderDrawer = document.getElementById('rider-nav-drawer');
+
+    riderToggle.addEventListener('click', () => {
+        const isOpen = riderDrawer.classList.toggle('open');
+        riderToggle.classList.toggle('open', isOpen);
+        riderToggle.setAttribute('aria-expanded', isOpen);
+    });
+
+    riderDrawer.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            riderDrawer.classList.remove('open');
+            riderToggle.classList.remove('open');
+            riderToggle.setAttribute('aria-expanded', false);
+        });
+    });
+</script>

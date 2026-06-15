@@ -1,11 +1,204 @@
 {% extends 'base.html' %}
 
-{% block title %}
-    hello world
+{% block title %}Hello World — Pizza'O Clock{% endblock %}
+
+{% block styles %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap');
+
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--dark);
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .hw-wrap {
+        text-align: center;
+        position: relative;
+        padding: 2rem;
+    }
+
+    /* Background glow */
+    .hw-wrap::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 50% 40% at 50% 60%, rgba(245,158,11,0.13) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    /* Floating ring decorations */
+    .ring {
+        position: fixed;
+        border-radius: 50%;
+        border: 1px solid rgba(245,158,11,0.08);
+        pointer-events: none;
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    .ring-1 { width: 320px; height: 320px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: 0s; }
+    .ring-2 { width: 520px; height: 520px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: 0.6s; }
+    .ring-3 { width: 720px; height: 720px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: 1.2s; }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 1; }
+    }
+
+    /* Tag */
+    .hw-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(245,158,11,0.15);
+        border: 1px solid rgba(245,158,11,0.4);
+        border-radius: 50px;
+        padding: 0.4rem 1rem;
+        color: var(--amber);
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        animation: fadeUp 0.6s ease both;
+    }
+
+    .hw-tag span {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--amber);
+        display: inline-block;
+        animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    /* Main heading */
+    .hw-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(3rem, 8vw, 6rem);
+        color: white;
+        line-height: 1.05;
+        margin: 0 0 1rem;
+        animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .hw-title em {
+        color: var(--amber);
+        font-style: italic;
+        display: block;
+    }
+
+    .hw-sub {
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.7;
+        max-width: 400px;
+        margin: 0 auto 2.5rem;
+        animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    /* CTA button */
+    .hw-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.85rem 2rem;
+        background: var(--amber);
+        color: var(--dark);
+        border-radius: 50px;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .hw-btn:hover {
+        background: var(--amber-dark);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(217,119,6,0.35);
+        color: var(--dark);
+        text-decoration: none;
+    }
+
+    .hw-btn svg { width: 16px; height: 16px; }
+
+    /* Status badge */
+    .hw-status {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 50px;
+        padding: 0.4rem 1rem;
+        color: var(--muted);
+        font-size: 0.78rem;
+        animation: fadeUp 0.6s 0.5s ease both;
+    }
+
+    .status-dot {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="text-lg uppercase">
-        hello world!!!!!
-    </div>
+
+<div class="ring ring-1"></div>
+<div class="ring ring-2"></div>
+<div class="ring ring-3"></div>
+
+<div class="hw-wrap">
+    <div class="hw-tag"><span></span> Server Running</div>
+    <h1 class="hw-title">
+        Hello,<br>
+        <em>World!</em>
+    </h1>
+    <p class="hw-sub">Pizza'O Clock is up and running. Everything looks great on this end.</p>
+    <a href="{% url 'landingapp:landing_page' %}" class="hw-btn">
+        Go to Homepage
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+</div>
+
+<div class="hw-status">
+    <span class="status-dot"></span>
+    All systems operational
+</div>
+
 {% endblock %}

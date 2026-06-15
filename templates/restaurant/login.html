@@ -1,67 +1,453 @@
 {% load static %}
-
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-
-    <title>Restaurant Login</title>
     <link rel="icon" type="image/x-icon" href="{% static 'icons/favicon512x512.png' %}">
-
+    <title>Restaurant Login — Pizza'O Clock</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        *, ::after, ::before { box-sizing: border-box; }
 
+        :root {
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --amber-dark: #d97706;
+            --dark: #1c1917;
+            --mid: #57534e;
+            --muted: #a8a29e;
+            --light: #fafaf9;
+        }
 
-        .rounded-elem {
-            border-radius: 2rem;
+        body {
+            margin: 0;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--light);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -120px; left: -120px;
+            width: 480px; height: 480px;
+            background: radial-gradient(circle, rgba(245,158,11,0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -120px; right: -120px;
+            width: 480px; height: 480px;
+            background: radial-gradient(circle, rgba(28,25,23,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .login-wrap {
+            display: flex;
+            width: 100%;
+            max-width: 960px;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.12);
+            margin: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── LEFT PANEL ── */
+        .login-panel {
+            flex: 1;
+            background: var(--dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-panel::before {
+            content: '';
+            position: absolute;
+            top: -80px; right: -80px;
+            width: 320px; height: 320px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.12);
+        }
+
+        .login-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; left: -60px;
+            width: 240px; height: 240px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.07);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--amber);
+        }
+
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: white;
+            letter-spacing: 0.02em;
+        }
+
+        .panel-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 3vw, 2.6rem);
+            color: white;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-title em {
+            color: var(--amber);
+            font-style: italic;
+        }
+
+        .panel-desc {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            max-width: 320px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-tag {
+            margin-top: 2.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(245,158,11,0.15);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 50px;
+            padding: 0.45rem 1rem;
+            color: var(--amber);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Perks list */
+        .perks-list {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .perk-item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .perk-icon {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            background: rgba(245,158,11,0.15);
+            border: 1px solid rgba(245,158,11,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        /* ── RIGHT FORM PANEL ── */
+        .form-panel {
+            flex: 1;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 3.5rem;
+        }
+
+        .form-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            color: var(--dark);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .field-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--mid);
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.03em;
+        }
+
+        .field-group input {
+            width: 100%;
+            padding: 0.85rem 1.1rem;
+            border: 1.5px solid #e7e5e4;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            color: var(--dark);
+            background: var(--light);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .field-group input:focus {
+            border-color: var(--amber);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+        }
+
+        .field-group input::placeholder { color: #c4bfbb; }
+
+        .form-meta {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-meta a {
+            font-size: 0.85rem;
+            color: var(--amber-dark);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .form-meta a:hover { text-decoration: underline; }
+
+        .error-msg {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 0.65rem 1rem;
+            font-size: 0.85rem;
+            color: #dc2626;
+            margin-bottom: 1.25rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.95rem;
+            background: var(--amber);
+            color: var(--dark);
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: var(--amber-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(217,119,6,0.3);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+
+        .register-link a {
+            color: var(--dark);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .register-link a:hover { color: var(--amber-dark); }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 1.25rem 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: #f0efee;
+        }
+
+        .divider-text {
+            font-size: 0.78rem;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        /* User login link */
+        .switch-role {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #e7e5e4;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            color: var(--mid);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+        }
+
+        .switch-role:hover {
+            border-color: var(--amber);
+            color: var(--amber-dark);
+            background: var(--amber-light);
+        }
+
+        @media (max-width: 700px) {
+            .login-panel { display: none; }
+            .login-wrap { margin: 1rem; border-radius: 20px; }
+            .form-panel { padding: 2.5rem 1.75rem; }
         }
     </style>
 </head>
-<body style="background: #eeeeee;">
+<body>
 
-<div style="min-height: 30rem" class="d-flex justify-content-center align-items-center m-lg-5 m-0 p-lg-5 p-0">
-    <div class="d-flex justify-content-center align-items-center">
+<div class="login-wrap">
 
-        <form method="POST" class="px-5  py-3 border rounded-elem bg-white">
-            {% csrf_token %}
-            <h2 class="my-3">Restaurant Login</h2>
-            {% if error %}
-                <div class="bg-danger p-2 rounded text-white m-2 mx-3">
-                    Invalid email or Password.
-                </div>
-            {% endif %}
+    <!-- ── LEFT PANEL ── -->
+    <div class="login-panel">
+        <div class="brand">
+            <div class="brand-dot"></div>
+            <span class="brand-name">Pizza'O Clock</span>
+        </div>
 
-            <div class="mb-3">
-                <label for="exampleInputEmail1" class="form-label">Email address</label>
-                <input name="email" type="email" class="form-control" id="exampleInputEmail1"
-                       aria-describedby="emailHelp">
-                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+        <h1 class="panel-title">
+            Grow your<br>restaurant <em>with us</em>.
+        </h1>
+
+        <p class="panel-desc">
+            Partner with Pizza'O Clock to reach thousands of hungry customers across Pakistan and manage your orders with ease.
+        </p>
+
+        <div class="perks-list">
+            <div class="perk-item">
+                <div class="perk-icon">🍽️</div>
+                Reach thousands of customers daily
             </div>
-            <div class="mb-3">
-                <label for="exampleInputPassword1" class="form-label">Password</label>
-                <input name="password" type="password" class="form-control " id="exampleInputPassword1">
+            <div class="perk-item">
+                <div class="perk-icon">📦</div>
+                Manage orders from one dashboard
             </div>
-
-            <div class="my-2 d-flex">
-                <a href="{% url 'landingapp:request_reset_password' %}">Forgot Password?</a>
+            <div class="perk-item">
+                <div class="perk-icon">🏍️</div>
+                We handle delivery — you cook
             </div>
-
-            <button type="submit" class="btn text-white btn-lg "
-                    style="background: #40a37c;">Login
-            </button>
-            <div class="my-2 d-flex">
-
-                <a href="{% url 'restaurant:register' %}">Register New Account</a>
+            <div class="perk-item">
+                <div class="perk-icon">📊</div>
+                Track ratings and grow your brand
             </div>
-        </form>
+        </div>
+
+        <div class="panel-tag">
+            🍕 2000+ restaurants across Pakistan
+        </div>
     </div>
+
+    <!-- ── RIGHT FORM PANEL ── -->
+    <div class="form-panel">
+        <div class="form-title">Restaurant Login</div>
+        <div class="form-sub">Sign in to your restaurant dashboard</div>
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'restaurant:login' %}">
+            {% csrf_token %}
+
+            <div class="field-group">
+                <label for="email">Email Address</label>
+                <input type="email" name="email" id="email"
+                       placeholder="restaurant@example.com" required>
+            </div>
+
+            <div class="field-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password"
+                       placeholder="••••••••" required>
+            </div>
+
+            <div class="form-meta">
+                <a href="{% url 'landingapp:request_reset_password' %}">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="submit-btn">Sign In to Dashboard</button>
+        </form>
+
+        <div class="register-link">
+            New restaurant? <a href="{% url 'restaurant:register' %}">Create an account</a>
+        </div>
+
+        <div class="divider">
+            <div class="divider-line"></div>
+            <div class="divider-text">not a restaurant?</div>
+            <div class="divider-line"></div>
+        </div>
+
+        <a href="{% url 'user:login' %}" class="switch-role">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Login as a Customer instead
+        </a>
+    </div>
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-        crossorigin="anonymous"></script>
 </body>
 </html>

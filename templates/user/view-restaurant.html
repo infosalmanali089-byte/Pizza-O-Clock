@@ -3,226 +3,1029 @@
 
 {% block title %}{{ restaurant.name }}{% endblock %}
 
-
 {% block styles %}
-    <style>
-        .title {
-            font-weight: bold;
-            margin: 2rem 0;
-            font-size: 4rem;
-            text-transform: capitalize;
-        }
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-        .main-container {
-            min-height: 70vh;
-        }
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+        --green: #10b981;
+        --green-light: #d1fae5;
+        --white: #ffffff;
+    }
 
-        .review {
-            border-radius: 1rem;
-            padding: 1rem;
-            margin: 1rem 0;
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--light);
+        color: var(--dark);
+        margin: 0;
+    }
+
+    .restaurant-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 5rem;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .restaurant-hero {
+        grid-column: 1 / -1;
+        background: var(--dark);
+        border-radius: 24px;
+        padding: 2.5rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+        animation: fadeUp 0.5s ease both;
+    }
+
+    .restaurant-hero::before {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 280px; height: 280px;
+        background: radial-gradient(circle, rgba(245,158,11,0.18) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .restaurant-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -40px; left: -40px;
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .hero-eyebrow {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--amber);
+        margin-bottom: 0.5rem;
+        position: relative; z-index: 1;
+    }
+
+    .hero-name {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        font-weight: 800;
+        color: white;
+        line-height: 1.1;
+        margin: 0 0 1rem;
+        position: relative; z-index: 1;
+    }
+
+    .hero-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        position: relative; z-index: 1;
+    }
+
+    .stars-row {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .star {
+        font-size: 1rem;
+        color: var(--muted);
+        transition: color 0.1s;
+    }
+    .star.filled { color: var(--amber); }
+    .star.half   { color: var(--amber); opacity: 0.6; }
+
+    .reviews-link {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.5);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .reviews-link:hover { color: var(--amber); }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .status-pill.open {
+        background: var(--green-light);
+        color: #059669;
+    }
+
+    .status-pill.closed {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .status-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .hero-search {
+        display: flex;
+        gap: 0.6rem;
+        margin-top: 1.5rem;
+        max-width: 480px;
+        position: relative; z-index: 1;
+    }
+
+    .hero-search input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1.5px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.08);
+        color: white;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        outline: none;
+        transition: all 0.2s;
+    }
+
+    .hero-search input::placeholder { color: rgba(255,255,255,0.35); }
+
+    .hero-search input:focus {
+        border-color: var(--amber);
+        background: rgba(255,255,255,0.12);
+    }
+
+    .hero-search-btn {
+        padding: 0.75rem 1.25rem;
+        background: var(--amber);
+        color: var(--dark);
+        border: none;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .hero-search-btn:hover {
+        background: var(--amber-dark);
+        color: white;
+    }
+
+    .hero-reset-btn {
+        padding: 0.75rem 1rem;
+        background: rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.7);
+        border: 1.5px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s;
+    }
+
+    .hero-reset-btn:hover {
+        background: rgba(255,255,255,0.15);
+        color: white;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .cart-sidebar {
+        position: sticky;
+        top: 80px;
+        background: white;
+        border-radius: 20px;
+        border: 1.5px solid var(--border);
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    .cart-header {
+        padding: 1.1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .cart-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .cart-count {
+        width: 22px; height: 22px;
+        background: var(--amber);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .cart-body {
+        padding: 0.75rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .cart-body::-webkit-scrollbar { width: 4px; }
+    .cart-body::-webkit-scrollbar-track { background: transparent; }
+    .cart-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .cart-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem;
+        border-radius: 12px;
+        margin-bottom: 0.4rem;
+        transition: background 0.15s;
+    }
+
+    .cart-item:hover { background: var(--light); }
+
+    .cart-item-img {
+        width: 52px; height: 52px;
+        border-radius: 10px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .cart-item-info { flex: 1; min-width: 0; }
+
+    .cart-item-name {
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 0.15rem;
+    }
+
+    .cart-item-qty {
+        font-size: 0.75rem;
+        color: var(--muted);
+    }
+
+    .cart-item-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .qty-btn {
+        width: 26px; height: 26px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border);
+        background: white;
+        color: var(--dark);
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition: all 0.15s;
+        line-height: 1;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .qty-btn:hover {
+        border-color: var(--amber);
+        background: var(--amber-light);
+        color: var(--amber-dark);
+    }
+
+    .cart-empty {
+        padding: 1.5rem 1rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85rem;
+    }
+
+    .cart-empty-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+
+    .cart-footer {
+        padding: 0.75rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .checkout-btn {
+        display: block;
+        width: 100%;
+        padding: 0.8rem;
+        background: var(--dark);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .checkout-btn:hover {
+        background: var(--amber-dark);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(217,119,6,0.3);
+    }
+
+    .menu-content {
+        min-width: 0;
+        animation: fadeUp 0.5s 0.15s ease both;
+    }
+
+    .menu-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .menu-section-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 2px solid var(--amber-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .menu-section-title::before {
+        content: '';
+        display: inline-block;
+        width: 4px; height: 18px;
+        background: var(--amber);
+        border-radius: 2px;
+    }
+
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .menu-item-form { margin: 0; }
+
+    .menu-item-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1.5px solid var(--border);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+    }
+
+    .menu-item-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    }
+
+    .menu-item-img-wrap {
+        height: 160px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .menu-item-img-wrap img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+        display: block;
+    }
+
+    .menu-item-card:hover .menu-item-img-wrap img {
+        transform: scale(1.06);
+    }
+
+    .item-rating-badge {
+        position: absolute;
+        top: 0.6rem; right: 0.6rem;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.25rem 0.55rem;
+        border-radius: 50px;
+        backdrop-filter: blur(4px);
+    }
+
+    .item-rating-badge.rated { background: var(--amber); color: var(--dark); }
+
+    .menu-item-body {
+        padding: 0.875rem;
+    }
+
+    .menu-item-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .menu-item-desc {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-bottom: 0.6rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .menu-item-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .menu-item-price {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .add-btn {
+        padding: 0.4rem 0.85rem;
+        background: var(--amber);
+        color: var(--dark);
+        border: none;
+        border-radius: 50px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        letter-spacing: 0.02em;
+    }
+
+    .add-btn:hover {
+        background: var(--amber-dark);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .reviews-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1.5px solid var(--border);
+    }
+
+    .reviews-heading {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--dark);
+        margin-bottom: 1.25rem;
+    }
+
+    .reviews-heading em { color: var(--amber-dark); font-style: italic; }
+
+    .review-card {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 16px;
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 0.875rem;
+        display: flex;
+        gap: 0.875rem;
+        align-items: flex-start;
+        transition: box-shadow 0.2s;
+    }
+
+    .review-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+
+    .reviewer-avatar {
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .reviewer-avatar-placeholder {
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        background: var(--amber-light);
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        color: var(--amber-dark);
+        font-weight: 700;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .review-body { flex: 1; min-width: 0; }
+
+    .reviewer-name {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.2rem;
+    }
+
+    .review-stars { margin-bottom: 0.3rem; font-size: 0.85rem; }
+    .review-stars .star { font-size: 0.85rem; }
+
+    .review-message {
+        font-size: 0.88rem;
+        color: var(--mid);
+        line-height: 1.6;
+        font-weight: 300;
+        margin: 0;
+    }
+
+    .mobile-cart-bar {
+        display: none;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        z-index: 999;
+        background: var(--dark);
+        padding: 0;
+    }
+
+    .mobile-cart-toggle {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: var(--dark);
+        border: none;
+        color: white;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        border-top: 2px solid var(--amber);
+    }
+
+    .mobile-cart-toggle span { display: flex; align-items: center; gap: 0.5rem; }
+
+    .mobile-cart-drawer {
+        background: white;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s ease;
+    }
+
+    .mobile-cart-drawer.open { max-height: 60vh; overflow-y: auto; }
+
+    .mobile-cart-inner { padding: 1rem; }
+
+    @media (max-width: 900px) {
+        .restaurant-page {
+            grid-template-columns: 1fr;
+            padding-bottom: 80px;
         }
-    </style>
+        .cart-sidebar { display: none; }
+        .mobile-cart-bar { display: block; }
+    }
+
+    @media (max-width: 480px) {
+        .restaurant-page { padding: 1rem 1rem 80px; }
+        .restaurant-hero { padding: 1.75rem 1.25rem; }
+        .menu-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+        .menu-item-img-wrap { height: 130px; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="accordion accordion-flush fixed-bottom d-lg-none d-md-block" style="max-height: 30rem; overflow-y: auto"
-         id="accordionFlushExample">
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingOne">
-                <button class="accordion-button collapsed fw-bolder bg-warning" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                    Your Items
-                </button>
-            </h2>
-            <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne"
-                 data-bs-parent="#accordionFlushExample">
+{% if restaurant_closed %}
+<div id="closed-toast" style="
+    position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%);
+    background: #1c1917; color: white;
+    padding: 0.85rem 1.5rem;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    font-size: 0.92rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    z-index: 9999;
+    animation: slideDown 0.3s ease;
+">
+    🕐 <strong>Restaurant is closed.</strong>&nbsp;Come back later!
+    <button onclick="document.getElementById('closed-toast').remove()"
+        style="margin-left:1rem; background:none; border:none; color:#f59e0b; cursor:pointer; font-size:1rem;">✕</button>
+</div>
+<style>
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateX(-50%) translateY(-16px); }
+        to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+</style>
+<script>
+    setTimeout(() => {
+        const t = document.getElementById('closed-toast');
+        if (t) t.remove();
+    }, 4000);
+</script>
+{% endif %}
+<!-- ── MOBILE CART BOTTOM BAR ── -->
+<div class="mobile-cart-bar d-lg-none">
+    <button class="mobile-cart-toggle" onclick="toggleMobileCart(this)">
+        <span>
+            🛒 Your Items
+            {% if cart_items %}
+            <span style="background:var(--amber);color:var(--dark);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-size:0.72rem;font-weight:700;">
+                {{ cart_items|length }}
+            </span>
+            {% endif %}
+        </span>
+        <span id="cart-chevron" style="transition:transform 0.3s;">↑</span>
+    </button>
 
-
-                <div class="filter-sidepanel d-flex flex-column  gap-3 p-3 w-100">
-
-                    {% for cart_item in cart_items %}
-                        <div class="card mb-3">
-                            <div class="d-flex gap-5 justify-content-start">
-                                <img style="height: 100px; width: 100px;" src="{{ cart_item.item.image.url }}"
-                                     class="img-fluid rounded-start"
-                                     alt="...">
-                                <div class="d-flex flex-fill flex-column justify-content-around align-items-center flex-nowrap">
-                                    <h6 class="card-title ">{{ cart_item.item.name }}
-                                        <strong>x{{ cart_item.quantity }}</strong>
-                                    </h6>
-                                    <div class="d-flex">
-                                        <form method="POST">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
-                                            <input type="hidden" name="cart_pk" value="{{ cart_item.cart.pk }}">
-                                            <input type="hidden" name="increment" value="increment">
-
-                                            <button class="btn btn-sm btn-warning rounded-btn">+</button>
-                                        </form>
-                                        <form method="POST">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
-                                            <input type="hidden" name="cart_pk" value="{{ cart_item.cart.pk }}">
-                                            <input type="hidden" name="decrement" value="decrement">
-
-                                            <button class="btn btn-sm btn-warning rounded-btn">-</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-
-                    {% if cart_items %}
-                        <a href="{% url 'user:review_order' cart_id=cart.pk %}" class="btn btn-warning w-100 my-3">Checkout</a>
-                    {% else %}
-                        <h5 class="text-danger fw-bold">No Item in Cart</h5>
-                    {% endif %}
-
-                </div>
-
-
-            </div>
-        </div>
-    </div>
-
-
-    <div class="m-5 d-flex gap-5 position-relative main-container">
-        <div class="filter-sidepanel d-flex flex-column gap-3 h-75 border rounded p-2 sticky-top d-none d-lg-block  col-md-6 ">
-            <div class="py-5 sticky-top"></div>
-            <h4 class="fw-bold">Your Items</h4>
-
+    <div class="mobile-cart-drawer" id="mobile-cart-drawer">
+        <div class="mobile-cart-inner">
             {% for cart_item in cart_items %}
-
-                <div class="card mb-3">
-                    <div class="row g-0">
-                        <div class="col-md-4">
-                            <img src="{{ cart_item.item.image.url }}" class="img-fluid rounded-start" alt="...">
-                        </div>
-                        <div class="col-md-8 ">
-                            <div class="card-body d-flex flex-column justify-content-between align-items-center flex-nowrap">
-                                <h6 class="card-title ">{{ cart_item.item.name }}
-                                    <strong>x{{ cart_item.quantity }}</strong>
-                                </h6>
-                                <div class="d-flex">
-                                    <form method="POST">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
-                                        <input type="hidden" name="cart_pk" value="{{ cart_item.cart.pk }}">
-                                        <input type="hidden" name="increment" value="increment">
-
-                                        <button class="btn btn-sm btn-warning rounded-btn">+</button>
-                                    </form>
-                                    <form method="POST">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
-                                        <input type="hidden" name="cart_pk" value="{{ cart_item.cart.pk }}">
-                                        <input type="hidden" name="decrement" value="decrement">
-
-                                        <button class="btn btn-sm btn-warning rounded-btn">-</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="cart-item">
+                <img src="{{ cart_item.item.image.url }}" class="cart-item-img" alt="{{ cart_item.item.name }}">
+                <div class="cart-item-info">
+                    <div class="cart-item-name">{{ cart_item.item.name }}</div>
+                    <div class="cart-item-qty">x{{ cart_item.quantity }}</div>
                 </div>
-
+                <div class="cart-item-controls">
+                        <form method="POST" action="{% url 'user:view_restaurant' restaurant_id=restaurant.id %}" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
+                            <input type="hidden" name="action" value="decrement">
+                            <button class="qty-btn" type="submit">−</button>
+                        </form>
+                        <span style="font-size:0.82rem;font-weight:600;min-width:16px;text-align:center;">{{ cart_item.quantity }}</span>
+                        <form method="POST" action="{% url 'user:view_restaurant' restaurant_id=restaurant.id %}" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
+                            <input type="hidden" name="action" value="increment">
+                            <button class="qty-btn" type="submit">+</button>
+                        </form>
+                        <form method="POST" action="{% url 'user:view_restaurant' restaurant_id=restaurant.id %}" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
+                            <input type="hidden" name="action" value="remove">
+                            <button class="qty-btn" type="submit" style="color:#dc2626;border-color:#fecaca;">🗑</button>
+                        </form>
+                    </div>
+            </div>
             {% endfor %}
 
             {% if cart_items %}
-                <a href="{% url 'user:review_order' cart_id=cart.pk %}" class="btn btn-warning w-100 my-3">Checkout</a>
+                <a href="{% url 'user:review_order' cart_id=cart.pk %}" class="checkout-btn" style="margin-top:0.75rem;">
+                    Checkout →
+                </a>
             {% else %}
-                <h5 class="text-danger fw-bold">No Item in Cart</h5>
+                <div class="cart-empty">
+                    <span class="cart-empty-icon">🛒</span>
+                    No items yet — add something!
+                </div>
             {% endif %}
-
-
         </div>
-
-        <div class="flex-fill">
-            <div class="p-3 py-5 text-white m-4 rounded-3 shadow" style="background-color: #800080">
-                <h1 class="title fs-3">{{ restaurant.name }}</h1>
-                {% include 'show-stars.html' with rating=restaurant.average_rating %}
-                <span>(<a
-                        href="{% url 'user:restaurant_reviews' restaurant_id=restaurant.id %}">{{ restaurant_review_count }}</a> Reviews)</span>
+    </div>
+</div>
 
 
-            </div>
+<div class="restaurant-page">
 
-            <form class="d-flex gap-3">
-                <input name="q" type="text" class="form-control rounded-elem" placeholder="Cuisine"
-                       aria-label="Search food"
-                       aria-describedby="button-addon2">
-                <button class="btn btn-warning" type="submit" id="button-addon2">Search</button>
-                <a class="btn btn-warning" href="{% url 'user:restaurant' restaurant_id=restaurant.id %}" type="button">reset</a>
-            </form>
+    <!-- ── RESTAURANT HERO ── -->
+    <div class="restaurant-hero">
+        <div class="hero-eyebrow">Restaurant</div>
+        <h1 class="hero-name">{{ restaurant.name }}</h1>
 
-            {% for menu in menu_list %}
-                {% if menu.items|length %}
-
-                    <div class="mt-5 overflow-hidden">
-                        <h2 class="fw-bold">{{ menu.name }}</h2>
-
-                        <div class="row overflow-hidden">
-
-                            {% for item in menu.items %}
-
-                                <form method="post" onsubmit="" class="col-md-6 col-lg-3 col-12 my-1">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="cart_pk" value="{{ cart.pk }}">
-                                    <input type="hidden" name="item_pk" value="{{ item.pk }}">
-                                    <input type="hidden" name="increment" value="increment">
-                                    <div class="card">
-                                        <div style="height: 200px;overflow: clip">
-
-                                            <img src="{{ item.image.url }}"
-                                                 class="card-img-top" alt="{{ item.name }}">
-                                        </div>
-                                        <div class="card-body">
-                                            <h5 class="card-title fw-bold">{{ item.name }}</h5>
-
-                                            <h6>⭐ {{ item.average_rating }}</h6>
-                                            <h6>Price: <strong>Rs. {{ item.price }}</strong></h6>
-
-                                            <button type="submit" class="btn btn-warning  fw-bold">ADD</button>
-
-                                        </div>
-                                    </div>
-                                </form>
-
-                            {% endfor %}
-
-                        </div>
-                    </div>
-
-                {% endif %}
-            {% endfor %}
-            <div class="my-5">
-                <hr>
-                <h2 class="fw-bold my-5">
-                    <i class="fas fa-book-reader"></i>
-                    <span>Food Reviews</span>
-                </h2>
-
-                {% for review in food_reviews %}
-                    <div class="review border">
-                        {% if review.order.user.profile_picture %}
-                            <img width="50" height="50" class="rounded-circle"
-                                 src="{{ review.order.user.profile_picture.url }}">
-                        {% endif %}
-                        <div>
-
-                            <span>By <strong>{{ review.order.user.first_name }}</strong></span>
-                            <div>{% include 'show-stars.html' with rating=review.rating %}</div>
-                            <p>{{ review.message }}</p>
-                        </div>
-                    </div>
+        <div class="hero-meta">
+            <div class="stars-row">
+                {% for i in "12345" %}
+                    {% if restaurant.average_rating >= forloop.counter %}
+                        <span class="star filled">★</span>
+                    {% else %}
+                        <span class="star">★</span>
+                    {% endif %}
                 {% endfor %}
+                <a href="{% url 'user:restaurant_reviews' restaurant_id=restaurant.id %}" class="reviews-link">
+                    ({{ restaurant_review_count }} reviews)
+                </a>
             </div>
 
+            {% if restaurant.is_out_of_service %}
+                <span class="status-pill closed">
+                    <span class="status-dot"></span> Closed
+                </span>
+            {% else %}
+                <span class="status-pill open">
+                    <span class="status-dot"></span> Open now
+                </span>
+            {% endif %}
         </div>
+
+        <form class="hero-search" method="GET">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search menu items…">
+            <button type="submit" class="hero-search-btn">Search</button>
+            <a href="{% url 'user:view_restaurant' restaurant_id=restaurant.id %}" class="hero-reset-btn">Reset</a>
+        </form>
     </div>
 
 
+    <!-- ── CART SIDEBAR (desktop) ── -->
+    <aside class="cart-sidebar">
+        <div class="cart-header">
+            <span class="cart-title">Your Items</span>
+            {% if cart_items %}
+            <span class="cart-count">{{ cart_items|length }}</span>
+            {% endif %}
+        </div>
+
+        <div class="cart-body">
+            {% if cart_items %}
+                {% for cart_item in cart_items %}
+                <div class="cart-item">
+                    <img src="{{ cart_item.item.image.url }}" class="cart-item-img" alt="{{ cart_item.item.name }}">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">{{ cart_item.item.name }}</div>
+                        <div class="cart-item-qty" style="display:flex;align-items:center;gap:0.4rem;">
+                            <span>x{{ cart_item.quantity }}</span>
+                            <span style="color:var(--amber-dark);font-weight:600;font-size:0.78rem;">Rs. {{ cart_item.get_item_total }}</span>
+                        </div>
+                    </div>
+                    <div class="cart-item-controls">
+                        <form method="POST" action="{% url 'user:view_restaurant' restaurant_id=restaurant.id %}" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
+                            <input type="hidden" name="action" value="decrement">
+                            <button class="qty-btn" type="submit">−</button>
+                        </form>
+                        <span style="font-size:0.82rem;font-weight:600;min-width:16px;text-align:center;">{{ cart_item.quantity }}</span>
+                        <form method="POST" action="{% url 'user:view_restaurant' restaurant_id=restaurant.id %}" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
+                            <input type="hidden" name="action" value="increment">
+                            <button class="qty-btn" type="submit">+</button>
+                        </form>
+                        <form method="POST" action="{% url 'user:view_restaurant' restaurant_id=restaurant.id %}" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_pk" value="{{ cart_item.item.pk }}">
+                            <input type="hidden" name="action" value="remove">
+                            <button class="qty-btn" type="submit" style="color:#dc2626;border-color:#fecaca;">🗑</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Cart total -->
+                <div style="margin-top:0.5rem;padding:0.6rem 0.6rem 0;border-top:1.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.82rem;font-weight:600;color:var(--mid);">Subtotal</span>
+                    <span style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:800;color:var(--amber-dark);">Rs. {{ cart.get_cart_total }}</span>
+                </div>
+            {% else %}
+                <div class="cart-empty">
+                    <span class="cart-empty-icon">🛒</span>
+                    Your cart is empty.<br>
+                    <span style="font-size:0.78rem;color:var(--muted);">Add items to get started!</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="cart-footer">
+            {% if cart_items %}
+            <a href="{% url 'user:review_order' cart_id=cart.pk %}" class="checkout-btn">
+                Checkout — Rs. {{ cart.get_cart_total }} →
+            </a>
+            {% else %}
+            <button disabled style="display:block;width:100%;padding:0.8rem;background:var(--border);color:var(--muted);border:none;border-radius:12px;font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;cursor:not-allowed;">
+                Cart is Empty
+            </button>
+            {% endif %}
+        </div>
+                    </aside>
+
+
+    <!-- ── MENU CONTENT ── -->
+    <main class="menu-content">
+
+        {% for menu in menu_list %}
+            {% if menu.items|length %}
+            <div class="menu-section">
+                <h2 class="menu-section-title">{{ menu.name }}</h2>
+                <div class="menu-grid">
+                    {% for item in menu.items %}
+                    <div class="menu-item-card" {% if item.is_available %}onclick="openItemModal({{ item.pk }})"{% endif %} style="{% if not item.is_available %}cursor:default;opacity:0.7;{% endif %}">
+                        <div class="menu-item-img-wrap">
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                            {% if item.average_rating > 0 %}
+                                <span class="item-rating-badge rated">★ {{ item.average_rating }}</span>
+                            {% else %}
+                                <span class="item-rating-badge">New</span>
+                            {% endif %}
+                        </div>
+                        <div class="menu-item-body">
+                            <div class="menu-item-name">{{ item.name }}</div>
+                            {% if item.description %}
+                                <div class="menu-item-desc">{{ item.description }}</div>
+                            {% endif %}
+                            <div class="menu-item-footer">
+                            <span class="menu-item-price">Rs. {{ item.price }}</span>
+                            {% if item.is_available %}
+                            <button type="button" class="add-btn" onclick="event.stopPropagation();openItemModal({{ item.pk }})">+ ADD</button>
+                            {% else %}
+                            <span style="display:inline-flex;align-items:center;padding:0.4rem 0.85rem;background:#fee2e2;color:#dc2626;border-radius:50px;font-size:0.78rem;font-weight:600;">Sold Out</span>
+                            {% endif %}
+                        </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden item data for modal -->
+                    <div id="item-data-{{ item.pk }}" style="display:none;"
+                         data-name="{{ item.name }}"
+                         data-price="{{ item.price }}"
+                         data-cart="{{ cart.pk }}"
+                         data-variants='[{% for v in item.variants.all %}{"id":{{ v.pk }},"name":"{{ v.name }}","extra":{{ v.extra_price }}}{% if not forloop.last %},{% endif %}{% endfor %}]'
+                         data-addons='[{% for a in item.addons.all %}{"id":{{ a.pk }},"name":"{{ a.name }}","extra":{{ a.extra_price }}}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+
+        <!-- ── FOOD REVIEWS ── -->
+        {% if food_reviews %}
+        <div class="reviews-section">
+            <h2 class="reviews-heading">Food <em>Reviews</em></h2>
+
+            {% for review in food_reviews %}
+            <div class="review-card">
+                {% if review.order.user.profile_picture %}
+                    <img class="reviewer-avatar" src="{{ review.order.user.profile_picture.url }}" alt="{{ review.order.user.first_name }}">
+                {% else %}
+                    <div class="reviewer-avatar-placeholder">
+                        {{ review.order.user.first_name|first|upper }}
+                    </div>
+                {% endif %}
+
+                <div class="review-body">
+                    <div class="reviewer-name">{{ review.order.user.first_name }}</div>
+                    <div class="review-stars">
+                        {% for i in "12345" %}
+                            {% if review.rating >= forloop.counter %}
+                                <span class="star filled">★</span>
+                            {% else %}
+                                <span class="star">★</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="review-message">{{ review.message }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </main>
+
+</div>
+
+
+<!-- ── ITEM MODAL ── -->
+<div id="item-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:white;border-radius:20px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.2);">
+
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div>
+                <div id="modal-item-name" style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--dark);"></div>
+                <div id="modal-item-price" style="font-size:0.85rem;color:var(--muted);margin-top:0.15rem;"></div>
+            </div>
+            <button onclick="closeItemModal()" style="background:var(--light);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1.1rem;display:grid;place-items:center;">✕</button>
+        </div>
+
+        <form method="POST" action="{% url 'user:view_restaurant' restaurant_id=restaurant.id %}" id="modal-form" style="padding:1.5rem;">
+            {% csrf_token %}
+            <input type="hidden" name="item_pk" id="modal-item-pk">
+            <input type="hidden" name="action" value="add">
+
+            <div id="modal-variants-section" style="margin-bottom:1.25rem;">
+                <div style="font-size:0.78rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;">Choose Size</div>
+                <div id="modal-variants"></div>
+            </div>
+
+            <div id="modal-addons-section" style="margin-bottom:1.5rem;">
+                <div style="font-size:0.78rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;">Add-ons</div>
+                <div id="modal-addons"></div>
+            </div>
+
+            <button type="submit" style="width:100%;padding:0.9rem;background:var(--amber);color:var(--dark);border:none;border-radius:12px;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;">
+                Add to Cart
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleMobileCart(btn) {
+        const drawer = document.getElementById('mobile-cart-drawer');
+        const chevron = document.getElementById('cart-chevron');
+        const isOpen = drawer.classList.toggle('open');
+        chevron.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    function openItemModal(itemPk) {
+        const data = document.getElementById('item-data-' + itemPk);
+        const name = data.dataset.name;
+        const price = data.dataset.price;
+        const cartPk = data.dataset.cart;
+        const variants = JSON.parse(data.dataset.variants);
+        const addons = JSON.parse(data.dataset.addons);
+
+        document.getElementById('modal-item-name').textContent = name;
+        document.getElementById('modal-item-price').textContent = 'Base price: Rs. ' + price;
+        document.getElementById('modal-item-pk').value = itemPk;
+        const variantsEl = document.getElementById('modal-variants');
+        const variantsSection = document.getElementById('modal-variants-section');
+        variantsEl.innerHTML = '';
+        if (variants.length > 0) {
+            variantsSection.style.display = 'block';
+            variants.forEach((v, i) => {
+                variantsEl.innerHTML += `
+                    <label style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.875rem;border:1.5px solid var(--border);border-radius:10px;margin-bottom:0.4rem;cursor:pointer;">
+                        <input type="radio" name="variant_id" value="${v.id}" ${i===0?'checked':''} style="accent-color:var(--amber-dark);">
+                        <span style="font-size:0.9rem;font-weight:500;color:var(--dark);">${v.name}</span>
+                        <span style="margin-left:auto;font-size:0.85rem;color:var(--muted);">+Rs.${v.extra}</span>
+                    </label>`;
+            });
+        } else {
+            variantsSection.style.display = 'none';
+        }
+
+        const addonsEl = document.getElementById('modal-addons');
+        const addonsSection = document.getElementById('modal-addons-section');
+        addonsEl.innerHTML = '';
+        if (addons.length > 0) {
+            addonsSection.style.display = 'block';
+            addons.forEach(a => {
+                addonsEl.innerHTML += `
+                    <label style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.875rem;border:1.5px solid var(--border);border-radius:10px;margin-bottom:0.4rem;cursor:pointer;">
+                        <input type="checkbox" name="addon_ids" value="${a.id}" style="accent-color:var(--amber-dark);">
+                        <span style="font-size:0.9rem;font-weight:500;color:var(--dark);">${a.name}</span>
+                        <span style="margin-left:auto;font-size:0.85rem;color:var(--muted);">+Rs.${a.extra}</span>
+                    </label>`;
+            });
+        } else {
+            addonsSection.style.display = 'none';
+        }
+
+        const modal = document.getElementById('item-modal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeItemModal() {
+        document.getElementById('item-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    document.getElementById('item-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeItemModal();
+    });
+</script>
 
 {% endblock %}

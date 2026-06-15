@@ -1,119 +1,390 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
-{% block title %}
-    Rate
-{% endblock %}
+{% block title %}Rate Your Experience — Pizza'O Clock{% endblock %}
 
 {% block styles %}
-    <style>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap');
 
-        .main-container {
-            margin: 1rem;
-            display: flex;
-            row-gap: 2rem;
-            min-height: 80dvh;
-            flex-direction: column;
-        }
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+    }
 
-        .sub {
-            background-color: white;
-            padding: 2rem;
-            margin: 1rem;
-            display: flex;
-            gap: 1rem;
-            flex-direction: column;
-            border-radius: 1rem;
-            box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
-        }
+    * { box-sizing: border-box; }
 
-        h1 {
-            font-weight: bold;
-            font-size: 2rem;
-        }
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--light);
+        color: var(--dark);
+        margin: 0;
+    }
 
-        h2 {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
+    a { text-decoration: none; color: inherit; }
 
-        textarea.form-control {
-            min-height: 150px;
-            border-radius: 1rem;
-        }
+    /* ── PAGE ── */
+    .rate-page {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 5rem;
+    }
 
-        body {
-            background-color: #f9f9f9;
-        }
+    /* ── PAGE HEADER ── */
+    .page-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--amber-dark);
+        margin-bottom: 0.5rem;
+        animation: fadeSlide 0.5s ease both;
+    }
 
-        select.form-select {
-            border-radius: 1rem;
-        }
-    </style>
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        color: var(--dark);
+        line-height: 1.2;
+        margin-bottom: 0.5rem;
+        animation: fadeSlide 0.5s 0.08s ease both;
+    }
+
+    .page-title em { color: var(--amber-dark); font-style: italic; }
+
+    .page-sub {
+        color: var(--muted);
+        font-size: 0.92rem;
+        margin-bottom: 2.5rem;
+        animation: fadeSlide 0.5s 0.14s ease both;
+    }
+
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RATING CARD ── */
+    .rate-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        border: 1px solid var(--border);
+        opacity: 0;
+        transform: translateY(16px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .rate-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .rate-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .rate-card-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: var(--amber-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .rate-card-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        color: var(--dark);
+    }
+
+    /* ── STAR PICKER ── */
+    .star-picker {
+        display: flex;
+        gap: 0.4rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .star-picker input[type="radio"] { display: none; }
+
+    .star-picker label {
+        font-size: 1.9rem;
+        cursor: pointer;
+        color: #e7e5e4;
+        transition: color 0.15s, transform 0.15s;
+        line-height: 1;
+        user-select: none;
+    }
+
+    .star-picker label:hover,
+    .star-picker label:hover ~ label,
+    .star-picker input[type="radio"]:checked ~ label {
+        color: #e7e5e4;
+    }
+
+    /* Highlight stars up to hovered/checked — reverse trick */
+    .star-picker {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+
+    .star-picker label:hover,
+    .star-picker label:hover ~ label {
+        color: var(--amber) !important;
+        transform: scale(1.15);
+    }
+
+    .star-picker input[type="radio"]:checked ~ label {
+        color: var(--amber) !important;
+    }
+
+    .star-picker input[type="radio"]:checked + label {
+        color: var(--amber) !important;
+    }
+
+    /* Simple approach: highlight on check */
+    .star-group {
+        display: flex;
+        gap: 0.35rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .star-btn {
+        background: none;
+        border: none;
+        font-size: 1.9rem;
+        cursor: pointer;
+        color: #e2ddd9;
+        transition: color 0.15s, transform 0.15s;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .star-btn:hover { transform: scale(1.2); }
+    .star-btn.active { color: var(--amber); }
+
+    .star-hidden {
+        display: none;
+    }
+
+    /* ── TEXTAREA ── */
+    .review-label {
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--mid);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .review-textarea {
+        width: 100%;
+        min-height: 110px;
+        padding: 0.85rem 1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.93rem;
+        color: var(--dark);
+        background: var(--light);
+        resize: vertical;
+        outline: none;
+        transition: all 0.2s;
+        line-height: 1.6;
+    }
+
+    .review-textarea:focus {
+        border-color: var(--amber);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+    }
+
+    .review-textarea::placeholder { color: #c4bfbb; }
+
+    /* ── SUBMIT ROW ── */
+    .submit-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+    }
+
+    .submit-btn {
+        padding: 0.85rem 2rem;
+        background: var(--amber);
+        color: var(--dark);
+        border: none;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .submit-btn:hover {
+        background: var(--amber-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(217,119,6,0.32);
+    }
+
+    .submit-btn:active { transform: translateY(0); }
+
+    .submit-btn svg { width: 16px; height: 16px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+        .rate-page { padding: 2rem 1rem 4rem; }
+        .rate-card { padding: 1.4rem; }
+        .star-btn { font-size: 1.6rem; }
+    }
+</style>
 {% endblock %}
+
 {% block content %}
-    <div class="main-container">
-        <h1>Rating</h1>
+<div class="rate-page">
 
-        <form method="POST" class="sub">
-            {% csrf_token %}
+    <!-- HEADER -->
+    <div class="page-label">Your feedback matters</div>
+    <h1 class="page-title">Rate your <em>experience</em></h1>
+    <p class="page-sub">Help us improve by sharing how your order went.</p>
 
-            <h2>Rate Restaurant</h2>
-            <select name="restaurant_rating" required class="form-select" aria-label="Default select example">
-                <option value="1">⭐</option>
-                <option value="2">⭐⭐</option>
-                <option value="3">⭐⭐⭐</option>
-                <option selected value="4">⭐⭐⭐⭐</option>
-                <option value="5">⭐⭐⭐⭐⭐</option>
-            </select>
+    <form method="POST">
+        {% csrf_token %}
 
-            <div class="form-floating">
-                <textarea name="restaurant_review" class="form-control" placeholder="Leave a comment here"
-                          id="floatingTextarea"></textarea>
-                <label for="floatingTextarea">Write a Review</label>
+        <!-- RESTAURANT -->
+        <div class="rate-card">
+            <div class="rate-card-header">
+                <div class="rate-card-icon">🏪</div>
+                <div class="rate-card-title">Rate the Restaurant</div>
             </div>
 
-            <br>
+            <div class="star-group" data-target="restaurant_rating" data-default="4">
+                <button type="button" class="star-btn" data-val="1">★</button>
+                <button type="button" class="star-btn" data-val="2">★</button>
+                <button type="button" class="star-btn" data-val="3">★</button>
+                <button type="button" class="star-btn" data-val="4">★</button>
+                <button type="button" class="star-btn" data-val="5">★</button>
+            </div>
+            <input type="hidden" name="restaurant_rating" class="star-hidden" value="4">
 
+            <label class="review-label" for="restaurant_review">Write a review</label>
+            <textarea id="restaurant_review" name="restaurant_review"
+                      class="review-textarea" placeholder="What did you love about this restaurant?"></textarea>
+        </div>
 
-            <h2>Rate Food</h2>
-            <select name="food_rating" required class="form-select" aria-label="Default select example">
-                <option value="1">⭐</option>
-                <option value="2">⭐⭐</option>
-                <option value="3">⭐⭐⭐</option>
-                <option selected value="4">⭐⭐⭐⭐</option>
-                <option value="5">⭐⭐⭐⭐⭐</option>
-            </select>
-
-            <div class="form-floating">
-                <textarea name="food_review" class="form-control" placeholder="Leave a comment here"
-                          id="floatingTextarea"></textarea>
-                <label for="floatingTextarea">Write a Review</label>
+        <!-- FOOD -->
+        <div class="rate-card">
+            <div class="rate-card-header">
+                <div class="rate-card-icon">🍕</div>
+                <div class="rate-card-title">Rate the Food</div>
             </div>
 
-            <br>
-
-            <h2>Rate Rider</h2>
-            <select name="rider_rating" class="form-select" aria-label="Default select example">
-                <option value="1">⭐</option>
-                <option value="2">⭐⭐</option>
-                <option value="3">⭐⭐⭐</option>
-                <option selected value="4">⭐⭐⭐⭐</option>
-                <option value="5">⭐⭐⭐⭐⭐</option>
-            </select>
-
-            <div class="form-floating">
-                <textarea name="rider_review" class="form-control" placeholder="Leave a comment here"
-                          id="floatingTextarea"></textarea>
-                <label for="floatingTextarea">Write a Review</label>
+            <div class="star-group" data-target="food_rating" data-default="4">
+                <button type="button" class="star-btn" data-val="1">★</button>
+                <button type="button" class="star-btn" data-val="2">★</button>
+                <button type="button" class="star-btn" data-val="3">★</button>
+                <button type="button" class="star-btn" data-val="4">★</button>
+                <button type="button" class="star-btn" data-val="5">★</button>
             </div>
-            <div class="d-flex justify-content-end">
+            <input type="hidden" name="food_rating" class="star-hidden" value="4">
 
-                <button type="submit" class="btn btn-primary">Submit</button>
+            <label class="review-label" for="food_review">Write a review</label>
+            <textarea id="food_review" name="food_review"
+                      class="review-textarea" placeholder="How was the taste and quality?"></textarea>
+        </div>
+
+        <!-- RIDER -->
+        <div class="rate-card">
+            <div class="rate-card-header">
+                <div class="rate-card-icon">🛵</div>
+                <div class="rate-card-title">Rate the Rider</div>
             </div>
 
-        </form>
+            <div class="star-group" data-target="rider_rating" data-default="4">
+                <button type="button" class="star-btn" data-val="1">★</button>
+                <button type="button" class="star-btn" data-val="2">★</button>
+                <button type="button" class="star-btn" data-val="3">★</button>
+                <button type="button" class="star-btn" data-val="4">★</button>
+                <button type="button" class="star-btn" data-val="5">★</button>
+            </div>
+            <input type="hidden" name="rider_rating" class="star-hidden" value="4">
 
-    </div>
+            <label class="review-label" for="rider_review">Write a review</label>
+            <textarea id="rider_review" name="rider_review"
+                      class="review-textarea" placeholder="Was the delivery fast and friendly?"></textarea>
+        </div>
+
+        <div class="submit-row">
+            <button type="submit" class="submit-btn">
+                Submit Review
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    // ── Staggered card entrance
+    const cards = document.querySelectorAll('.rate-card');
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    cards.forEach((c, i) => {
+        c.style.transitionDelay = `${i * 0.1}s`;
+        observer.observe(c);
+    });
+
+    // ── Star picker logic
+    document.querySelectorAll('.star-group').forEach(group => {
+        const stars   = group.querySelectorAll('.star-btn');
+        const hidden  = group.nextElementSibling; // the hidden input
+        const def     = parseInt(group.dataset.default || 4);
+
+        function highlight(val) {
+            stars.forEach(s => {
+                s.classList.toggle('active', parseInt(s.dataset.val) <= val);
+            });
+        }
+
+        // Set default
+        highlight(def);
+
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const val = parseInt(star.dataset.val);
+                hidden.value = val;
+                highlight(val);
+            });
+
+            star.addEventListener('mouseenter', () => highlight(parseInt(star.dataset.val)));
+            star.addEventListener('mouseleave', () => highlight(parseInt(hidden.value)));
+        });
+    });
+</script>
 {% endblock %}

@@ -1,58 +1,667 @@
 {% extends 'base.html' %}
-
-
 {% load static %}
 
+{% block title %}Live Chat — Pizza'O Clock{% endblock %}
 
-
-{% block title %}Live Chat{% endblock %}
 {% block styles %}
-    <script src="https://unpkg.com/htmx.org@2.0.1"></script>
+<script src="https://unpkg.com/htmx.org@2.0.1"></script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap');
+
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+    }
+
+    /* ── HIDE NAVBAR ON CHAT PAGE ── */
+    nav, .navbar, .nav, header:not(.chat-header) { display: none !important; }
+    body { padding-top: 0 !important; margin-top: 0 !important; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--light);
+        color: var(--dark);
+    }
+
+    /* ── PAGE SHELL ── */
+    .chat-page {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        max-width: 780px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    /* ── HEADER ── */
+    .chat-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+
+    .chat-avatar {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(245,158,11,0.35);
+    }
+
+    .chat-header-info { flex: 1; }
+
+    .chat-header-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        color: var(--dark);
+        line-height: 1.2;
+    }
+
+    .chat-header-status {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+        color: #10b981;
+        font-weight: 500;
+        margin-top: 0.15rem;
+    }
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.6; transform: scale(0.85); }
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--mid);
+        text-decoration: none;
+        padding: 0.45rem 0.9rem;
+        border: 1.5px solid var(--border);
+        border-radius: 50px;
+        transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+        border-color: var(--amber);
+        color: var(--amber-dark);
+        background: var(--amber-light);
+    }
+
+    .back-btn svg { width: 14px; height: 14px; }
+
+    /* ── MESSAGES AREA ── */
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── DATE DIVIDER ── */
+    .chat-date-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0.5rem 0;
+    }
+
+    .chat-date-divider::before,
+    .chat-date-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+    .chat-date-divider span {
+        font-size: 0.7rem;
+        color: var(--muted);
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    /* ── MESSAGE ROWS ── */
+    .msg-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        animation: msgIn 0.3s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes msgIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-row.bot { align-items: flex-start; }
+    .msg-row.user { align-items: flex-end; }
+
+    .msg-sender {
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        padding: 0 0.75rem;
+        text-transform: uppercase;
+    }
+
+    /* Bubble */
+    .msg-bubble {
+        max-width: min(72%, 420px);
+        padding: 0.85rem 1.1rem;
+        line-height: 1.65;
+        font-size: 0.93rem;
+        position: relative;
+    }
+
+    .msg-row.bot .msg-bubble {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 4px 20px 20px 20px;
+        color: var(--dark);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .msg-row.bot .msg-bubble::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -1.5px;
+        width: 3px; height: 100%;
+        background: linear-gradient(to bottom, var(--amber), var(--amber-dark));
+        border-radius: 3px 0 0 3px;
+    }
+
+    .msg-row.user .msg-bubble {
+        background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+        border-radius: 20px 20px 4px 20px;
+        color: var(--dark);
+        font-weight: 500;
+        box-shadow: 0 4px 16px rgba(217,119,6,0.28);
+    }
+
+    /* ── INPUT AREA ── */
+    .chat-input-wrap {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        border-top: 1px solid var(--border);
+        padding: 1rem 1.5rem 1.25rem;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+
+    .chat-form {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-end;
+    }
+
+    .textarea-wrap {
+        flex: 1;
+        position: relative;
+    }
+
+    .chat-textarea {
+        width: 100%;
+        min-height: 3rem;
+        max-height: 8rem;
+        padding: 0.8rem 1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.93rem;
+        color: var(--dark);
+        background: var(--light);
+        resize: none;
+        outline: none;
+        transition: all 0.2s;
+        line-height: 1.55;
+        overflow-y: auto;
+    }
+
+    .chat-textarea:focus {
+        border-color: var(--amber);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+    }
+
+    .chat-textarea::placeholder { color: #c4bfbb; }
+
+    .send-btn {
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+        background: var(--amber);
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        box-shadow: 0 4px 14px rgba(245,158,11,0.3);
+    }
+
+    .send-btn:hover:not(:disabled) {
+        background: var(--amber-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(217,119,6,0.38);
+    }
+
+    .send-btn:active { transform: translateY(0); }
+    .send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .send-btn svg { width: 20px; height: 20px; color: var(--dark); }
+
+    /* ── EMPTY STATE ── */
+    .chat-empty {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: var(--muted);
+    }
+
+    .chat-empty-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .chat-empty p {
+        font-size: 0.88rem;
+        line-height: 1.6;
+    }
+
+    /* ── HTMX INDICATOR ── */
+    .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator { display: flex; }
+
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 5px;
+        padding: 0.7rem 1rem;
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 4px 20px 20px 20px;
+        max-width: 80px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .htmx-request .typing-indicator { display: flex; }
+
+    .typing-dot {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: var(--amber);
+        animation: bounce 1.2s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes bounce {
+        0%, 60%, 100% { transform: translateY(0); }
+        30%            { transform: translateY(-6px); }
+    }
+    /* ── SUGGESTIONS ── */
+    .suggestions-wrap {
+        padding: 0.5rem 0;
+        animation: msgIn 0.4s ease both;
+    }
+
+    .suggestion-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.6rem;
+        padding-left: 0.25rem;
+    }
+
+    .suggestion-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .suggestion-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.5rem 0.9rem;
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: 50px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--mid);
+        cursor: pointer;
+        transition: all 0.18s;
+    }
+
+    .suggestion-chip:hover {
+        border-color: var(--amber);
+        color: var(--amber-dark);
+        background: var(--amber-light);
+    }
+
+    /* ── TIMESTAMP ── */
+    .msg-time {
+        font-size: 0.68rem;
+        color: var(--muted);
+        padding: 0 0.75rem;
+    }
+
+    /* ── QUICK REPLIES ── */
+    .quick-replies {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.5rem;
+        padding-left: 0.25rem;
+    }
+
+    .quick-reply-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.8rem;
+        background: var(--amber-light);
+        border: 1.5px solid rgba(245,158,11,0.4);
+        border-radius: 50px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--amber-dark);
+        cursor: pointer;
+        transition: all 0.18s;
+    }
+
+    .quick-reply-btn:hover {
+        background: var(--amber);
+        color: var(--dark);
+        border-color: var(--amber);
+    }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+        .chat-header { padding: 0.85rem 1rem; }
+        .chat-messages { padding: 1rem; gap: 1rem; }
+        .chat-input-wrap { padding: 0.85rem 1rem 1rem; }
+        .msg-bubble { max-width: 85%; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
+<div class="chat-page">
 
-    <div class="d-flex flex-column gap-5 p-3  position-relative" style="min-height: 100dvh;">
-        <div id="messages">
-            <div class=" d-flex flex-column align-items-start">
-                <div class="px-3 fw-bold">Fresh Bite</div>
-                <div class="rounded-elem p-3 border border-warning d-flex align-items-center">
-                    <div>Assalamu Alaikum Sir, How can I help you today?</div>
-                </div>
+    <!-- HEADER -->
+    <header class="chat-header">
+        <a href="{% url 'landingapp:landing_page' %}" class="back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Home
+        </a>
+
+        <div class="chat-avatar">🍕</div>
+
+        <div class="chat-header-info">
+            <div class="chat-header-name">Pizza'O Clock Support</div>
+            <div class="chat-header-status">
+                <span class="status-dot"></span>
+                Online — replies instantly
             </div>
+        </div>
+    </header>
 
-            {% for chat in chat_history %}
-                <div class="d-flex flex-column align-items-end">
-                    <div class="px-3 fw-bold">You</div>
-                    <div class="rounded-elem p-3 bg-warning d-flex align-items-center">
-                        <div>{{ chat.query }}</div>
-                    </div>
-                </div>
+    <!-- MESSAGES -->
+    <div class="chat-messages" id="messages">
 
-                <div class=" d-flex flex-column align-items-start">
-                    <div class="px-3 fw-bold">Fresh Bite</div>
-                    <div class="rounded-elem p-3 border border-warning d-flex align-items-center">
-                        <div>{{ chat.reply }}</div>
-                    </div>
-                </div>
-            {% endfor %}
+        <div class="chat-date-divider"><span>Today</span></div>
+
+        <!-- Bot greeting -->
+        <div class="msg-row bot">
+            <div class="msg-sender">Pizza'O Clock</div>
+            <div class="msg-bubble">
+                Assalamu Alaikum! 👋 How can I help you today? Ask me anything about your orders, restaurants, or delivery.
+            </div>
         </div>
 
-
-        <form
-                hx-post="{% url 'user:livechat' %}"
-                hx-target="#messages"
-                hx-swap="beforeend ignoreTitle:true"
-                hx-on::after-request="this.reset()"
-                class=" w-100 d-flex flex-column align-items-end">
-            {% csrf_token %}
-            <div class="form-floating w-100 border-warning ">
-                <textarea name="query" style="min-height: 7rem" class="form-control border border-warning rounded-elem"
-                          placeholder="Leave a comment here" id="floatingTextarea"></textarea>
-                <label for="floatingTextarea">Write your message here</label>
+        {% if not chat_history %}
+        <!-- Suggested questions -->
+        <div class="suggestions-wrap" id="suggestions">
+            <div class="suggestion-label">Quick questions:</div>
+            <div class="suggestion-chips">
+                <button class="suggestion-chip" onclick="sendSuggestion('Track my order')">📦 Track my order</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('How do I pay?')">💳 How do I pay?</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('Cancel my order')">❌ Cancel my order</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('Delivery charges')">🚴 Delivery charges</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('How long will delivery take?')">⏱ Delivery time</button>
+                <button class="suggestion-chip" onclick="sendSuggestion('My item is missing')">😟 Missing item</button>
             </div>
-            <button type="submit" class="btn btn-warning btn-lg m-3 rounded-elem">Send</button>
-        </form>
+        </div>
+        {% endif %}
+
+        <!-- Chat history -->
+        {% for chat in chat_history %}
+        <div class="msg-row user">
+            <div class="msg-sender">You</div>
+            <div class="msg-bubble">{{ chat.query }}</div>
+            <div class="msg-time">{{ chat.created_at|date:"H:i"|default:"" }}</div>
+        </div>
+
+        <div class="msg-row bot">
+            <div class="msg-sender">Pizza'O Clock</div>
+            <div class="msg-bubble">{{ chat.reply|linebreaksbr }}</div>
+            <div class="msg-time">{{ chat.created_at|date:"H:i"|default:"" }}</div>
+        </div>
+        {% endfor %}
+
+        <!-- Typing indicator (shown while htmx request is in-flight) -->
+        <div class="msg-row bot htmx-indicator" id="typing-row">
+            <div class="msg-sender">Pizza'O Clock</div>
+            <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
 
     </div>
+
+    <!-- INPUT -->
+    <div class="chat-input-wrap">
+        <form
+            class="chat-form"
+            hx-post="{% url 'user:livechat' %}"
+            hx-target="#messages"
+            hx-swap="beforeend ignoreTitle:true"
+            hx-indicator="#typing-row"
+            hx-on::after-request="this.reset(); scrollToBottom();">
+            {% csrf_token %}
+
+            <div class="textarea-wrap">
+                <textarea
+                    id="chat-input"
+                    class="chat-textarea"
+                    name="query"
+                    placeholder="Type your message…"
+                    rows="1"
+                    required
+                    oninput="autoResize(this)"
+                    onkeydown="handleEnter(event)"></textarea>
+            </div>
+
+            <button type="submit" class="send-btn" title="Send message">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    function scrollToBottom() {
+        const msgs = document.getElementById('messages');
+        msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            e.target.closest('form').requestSubmit();
+        }
+    }
+
+    function getTime() {
+        const now = new Date();
+        return now.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function sendSuggestion(text) {
+        const input = document.getElementById('chat-input');
+        input.value = text;
+        input.closest('form').requestSubmit();
+        const suggestions = document.getElementById('suggestions');
+        if (suggestions) suggestions.remove();
+    }
+
+    function addQuickReplies(container) {
+        const replies = ['Track my order', 'Payment help', 'Delivery time', 'Contact support'];
+        const wrap = document.createElement('div');
+        wrap.className = 'quick-replies';
+        replies.forEach(r => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-reply-btn';
+            btn.textContent = r;
+            btn.onclick = () => { sendSuggestion(r); wrap.remove(); };
+            wrap.appendChild(btn);
+        });
+        container.appendChild(wrap);
+    }
+
+    function appendUserMessage(text) {
+        const msgs = document.getElementById('messages');
+        const row = document.createElement('div');
+        row.className = 'msg-row user';
+        row.innerHTML = `
+            <div class="msg-sender">You</div>
+            <div class="msg-bubble">${text}</div>
+            <div class="msg-time">${getTime()}</div>
+        `;
+        msgs.appendChild(row);
+    }
+
+    function appendBotMessage(text) {
+        const msgs = document.getElementById('messages');
+        const row = document.createElement('div');
+        row.className = 'msg-row bot';
+        const formatted = text.replace(/\n/g, '<br>');
+        row.innerHTML = `
+            <div class="msg-sender">Pizza'O Clock</div>
+            <div class="msg-bubble">${formatted}</div>
+            <div class="msg-time">${getTime()}</div>
+        `;
+        msgs.appendChild(row);
+        addQuickReplies(row);
+    }
+
+    document.querySelector('.chat-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const suggestions = document.getElementById('suggestions');
+        if (suggestions) suggestions.remove();
+
+        appendUserMessage(text);
+        input.value = '';
+        autoResize(input);
+        scrollToBottom();
+
+        const typingRow = document.getElementById('typing-row');
+        typingRow.style.display = 'flex';
+        scrollToBottom();
+
+        const formData = new FormData();
+        formData.append('query', text);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch("{% url 'user:livechat' %}", {
+            method: 'POST',
+            body: formData,
+        })
+        .then(r => r.text())
+        .then(html => {
+            typingRow.style.display = 'none';
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const botBubbles = doc.querySelectorAll('.msg-row.bot .msg-bubble');
+            const lastBubble = botBubbles[botBubbles.length - 1];
+            if (lastBubble) {
+                appendBotMessage(lastBubble.innerText || lastBubble.textContent);
+            }
+            scrollToBottom();
+        })
+        .catch(() => {
+            typingRow.style.display = 'none';
+            appendBotMessage("Sorry, something went wrong. Please try again.");
+            scrollToBottom();
+        });
+    });
+
+    scrollToBottom();
+</script>
 {% endblock %}

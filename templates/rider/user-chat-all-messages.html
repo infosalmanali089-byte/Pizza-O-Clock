@@ -1,24 +1,68 @@
+{% load static %}
+
 <div id="messages"
      hx-get="{% url 'rider:live_chat_with_user' order_id=order.id %}?only-messages=true"
      hx-swap="outerHTML"
-     hx-trigger="load delay:2s"
->
+     hx-trigger="load delay:2s">
 
     {% for message in messages %}
+
         {% if message.sender == request.user %}
-            <div class="d-flex flex-column align-items-end">
-                <div class="px-3 fw-bold">You</div>
-                <div class="rounded-elem p-3 bg-warning d-flex align-items-center">
-                    <div>{{ message.text }}</div>
-                </div>
-            </div>
+        <!-- Sent by rider (right side) -->
+        <div style="display:flex; flex-direction:column; align-items:flex-end; margin-bottom:0.6rem;">
+            <div style="
+                max-width: 72%;
+                background: #f59e0b;
+                color: #1c1917;
+                border-radius: 18px 18px 4px 18px;
+                padding: 0.65rem 1rem;
+                font-family: 'DM Sans', sans-serif;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                font-weight: 400;
+                box-shadow: 0 2px 8px rgba(245,158,11,0.2);
+                word-break: break-word;
+            ">{{ message.text }}</div>
+            <div style="
+                font-size: 0.7rem;
+                color: #a8a29e;
+                margin-top: 0.25rem;
+                padding-right: 0.25rem;
+                font-family: 'DM Sans', sans-serif;
+            ">You</div>
+        </div>
+
         {% else %}
-            <div class=" d-flex flex-column align-items-start">
-                <div class="px-3 fw-bold">{{ receiver.first_name }}</div>
-                <div class="rounded-elem p-3 border border-warning d-flex align-items-center">
-                    <div>{{ message.text }}</div>
-                </div>
-            </div>
+        <!-- Received from customer (left side) -->
+        <div style="display:flex; flex-direction:column; align-items:flex-start; margin-bottom:0.6rem;">
+            <div style="
+                font-size: 0.7rem;
+                color: #a8a29e;
+                margin-bottom: 0.25rem;
+                padding-left: 0.25rem;
+                font-family: 'DM Sans', sans-serif;
+                font-weight: 500;
+            ">{{ receiver.first_name }}</div>
+            <div style="
+                max-width: 72%;
+                background: white;
+                color: #1c1917;
+                border-radius: 18px 18px 18px 4px;
+                padding: 0.65rem 1rem;
+                font-family: 'DM Sans', sans-serif;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                font-weight: 400;
+                border: 1.5px solid #e7e5e4;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                word-break: break-word;
+            ">{{ message.text }}</div>
+        </div>
+
         {% endif %}
+
+    {% empty %}
+    <!-- No messages yet — empty state handled by parent template -->
     {% endfor %}
+
 </div>

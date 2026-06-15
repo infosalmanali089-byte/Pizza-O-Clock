@@ -1,218 +1,970 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Menu List {% endblock %}
+{% block title %}Menus — Pizza'O Clock{% endblock %}
 
 {% block styles %}
-    <style>
-        body {
-            background-color: #ededed;
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+    }
 
-        }
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--light);
+        margin: 0;
+    }
 
-        .main-container {
-            margin: 3rem;
-            min-height: 70dvh;
-            background: white;
-            display: grid;
-            padding: 3rem;
-            row-gap: 2rem;
+    .hero-strip {
+        background: var(--dark);
+        padding: 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
 
+    .hero-strip::before {
+        content: '';
+        position: absolute;
+        top: -80px; right: -80px;
+        width: 280px; height: 280px;
+        border-radius: 50%;
+        background: rgba(245,158,11,0.1);
+        pointer-events: none;
+    }
 
-        }
+    .hero-strip::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: 30%;
+        width: 200px; height: 200px;
+        border-radius: 50%;
+        background: rgba(245,158,11,0.06);
+        pointer-events: none;
+    }
 
-        h1 {
-            font-weight: bold;
-        }
+    .hero-inner {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
 
-        .menu-item {
-            font-size: 1.3rem;
-        {#border-radius: 1rem;#} padding: 0.5rem;
-            text-decoration: none;
-            color: black;
-            transition: all 250ms;
-            border-bottom: solid 1px gray;
-            margin: 1rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            justify-content: space-between;
+    .hero-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--amber);
+        margin-bottom: 0.4rem;
+    }
 
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.4rem, 3vw, 2rem);
+        color: white;
+        line-height: 1.2;
+    }
 
-        }
+    .hero-title em { color: var(--amber); font-style: italic; }
 
-        ul {
-            list-style-type: none;
-        }
+    .hero-sub {
+        color: var(--muted);
+        font-size: 0.88rem;
+        margin-top: 0.4rem;
+    }
 
-        a:hover {
-            color: black;
-        {#transform: scale(1.05);#}
-        }
+    .btn-amber {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.72rem 1.4rem;
+        background: var(--amber);
+        color: var(--dark);
+        border: none;
+        border-radius: 50px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        white-space: nowrap;
+    }
 
-        .item {
-            padding: 1rem;
-            border-radius: 1rem;
-        {#border: solid 3px gray;#} box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-            transition: all 250ms;
-            text-transform: capitalize;
-        }
+    .btn-amber:hover {
+        background: var(--amber-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(217,119,6,0.3);
+        color: var(--dark);
+    }
 
-        .item:hover {
-            transform: scale(1.02);
-        }
+    .btn-amber svg { width: 14px; height: 14px; }
 
-        .modal {
-            background-color: rgba(0, 0, 0, 0.73);
-            justify-content: center;
-            align-items: center;
-        }
+    .main-wrap {
+        max-width: 1000px;
+        margin: 2.5rem auto 5rem;
+        padding: 0 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+    }
 
-        .modal-content {
-            padding: 1rem;
-            max-width: 20rem;
-        }
+    /* ── NOTIFICATION ── */
+    .poc-notification {
+        position: fixed;
+        top: 1.25rem;
+        right: 1.25rem;
+        z-index: 10000;
+        background: white;
+        border: 1.5px solid #a7f3d0;
+        border-left: 4px solid #10b981;
+        border-radius: 16px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        animation: slideIn 0.3s ease;
+        max-width: 320px;
+    }
 
-        .notification {
-            position: fixed;
-            z-index: 10000;
-            right: 0;
-            background-color: #0c4128;
-            padding: 0.7rem;
-            margin: 1rem;
-            border: solid 2px #0c4128;
-            border-radius: 1rem;
-            display: flex;
-            gap: 2rem;
-            color: white;
-            cursor: default;
-        }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(30px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
 
-        #notification > .btn {
-            background-color: white;
-            font-weight: bold;
-            font-size: 0.8rem;
-            margin: 0.2rem;
+    .poc-notification-icon {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: #d1fae5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
 
-        }
+    .poc-notification-icon svg { width: 18px; height: 18px; stroke: #10b981; }
 
-        #notification > .btn:hover {
-            background-color: #0c4128;
-            color: white;
-            border-color: white;
-        }
+    .poc-notification-title {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
 
-    </style>
+    .poc-notification-sub {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 0.1rem;
+    }
+
+    .poc-notification-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--muted);
+        padding: 0.2rem;
+        border-radius: 6px;
+        transition: color 0.2s;
+        flex-shrink: 0;
+    }
+
+    .poc-notification-close:hover { color: var(--dark); }
+    .poc-notification-close svg { width: 16px; height: 16px; }
+
+    /* ── MENU CARD ── */
+    .menu-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+    }
+
+    .menu-card:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.1); }
+
+    .menu-card-header {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid #f0efee;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .menu-card-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .menu-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--amber);
+        flex-shrink: 0;
+    }
+
+    .menu-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        color: var(--dark);
+    }
+
+    .menu-item-count {
+        font-size: 0.75rem;
+        color: var(--muted);
+        background: var(--light);
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        padding: 0.2rem 0.65rem;
+    }
+
+    .menu-card-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-rename {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.5rem 1rem;
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1.5px solid #bbf7d0;
+        border-radius: 50px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-rename:hover {
+        background: #dcfce7;
+        border-color: #86efac;
+    }
+
+    .btn-rename svg { width: 13px; height: 13px; }
+
+    .btn-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.5rem 1rem;
+        background: var(--amber-light);
+        color: var(--amber-dark);
+        border: 1.5px solid rgba(245,158,11,0.3);
+        border-radius: 50px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .btn-edit:hover {
+        background: var(--amber);
+        color: var(--dark);
+        border-color: var(--amber);
+    }
+
+    .btn-edit svg { width: 13px; height: 13px; }
+
+    .btn-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.5rem 1rem;
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1.5px solid #fecaca;
+        border-radius: 50px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-delete:hover { background: #fee2e2; border-color: #f87171; }
+    .btn-delete svg { width: 13px; height: 13px; }
+
+    /* ── ITEMS GRID ── */
+    .menu-items-body { padding: 1.5rem; }
+
+    .menu-items-empty {
+        text-align: center;
+        padding: 2rem;
+        color: var(--muted);
+        font-size: 0.88rem;
+    }
+
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .item-tile {
+        background: var(--light);
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1.5px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .item-tile:hover {
+        border-color: var(--amber);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    .item-tile-img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .item-tile-img-placeholder {
+        width: 100%;
+        height: 120px;
+        background: #f0efee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .item-tile-img-placeholder svg { width: 28px; height: 28px; stroke: var(--muted); }
+
+    .item-tile-body { padding: 0.75rem; }
+
+    .item-tile-name {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-transform: capitalize;
+    }
+
+    .item-tile-desc {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 0.2rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .item-tile-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 0.6rem;
+        padding-top: 0.6rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .item-tile-price { font-size: 0.85rem; font-weight: 700; color: var(--dark); }
+
+    .item-tile-rating {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--amber-dark);
+        background: var(--amber-light);
+        border-radius: 50px;
+        padding: 0.15rem 0.5rem;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    .empty-icon {
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        background: var(--amber-light);
+        border: 2px solid rgba(245,158,11,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+
+    .empty-icon svg { width: 32px; height: 32px; stroke: var(--amber-dark); }
+
+    .empty-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-sub {
+        font-size: 0.88rem;
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+
+    /* ── WARNING BANNER ── */
+    .warning-banner {
+        background: #fffbeb;
+        border: 1.5px solid #fde68a;
+        border-left: 4px solid var(--amber);
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .warning-banner svg { width: 20px; height: 20px; stroke: var(--amber-dark); flex-shrink: 0; }
+    .warning-banner-text { font-size: 0.9rem; color: var(--mid); line-height: 1.6; }
+    .warning-banner-text a { color: var(--amber-dark); font-weight: 600; }
+
+    /* ── MODALS SHARED ── */
+    .poc-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 5000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .poc-modal-backdrop.open { display: flex; }
+
+    .poc-modal {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+        animation: modalPop 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    @keyframes modalPop {
+        from { opacity: 0; transform: scale(0.92); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+
+    .poc-modal-icon {
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.1rem;
+    }
+
+    .poc-modal-icon.danger {
+        background: #fef2f2;
+        border: 2px solid #fecaca;
+    }
+
+    .poc-modal-icon.danger svg { width: 22px; height: 22px; stroke: #dc2626; }
+
+    .poc-modal-icon.success {
+        background: var(--amber-light);
+        border: 2px solid rgba(245,158,11,0.3);
+    }
+
+    .poc-modal-icon.success svg { width: 22px; height: 22px; stroke: var(--amber-dark); }
+
+    .poc-modal-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        color: var(--dark);
+        margin-bottom: 0.4rem;
+    }
+
+    .poc-modal-sub {
+        font-size: 0.88rem;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Rename input */
+    .rename-input {
+        width: 100%;
+        padding: 0.82rem 1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        color: var(--dark);
+        background: var(--light);
+        outline: none;
+        transition: all 0.2s;
+        margin-bottom: 1.25rem;
+        box-sizing: border-box;
+    }
+
+    .rename-input:focus {
+        border-color: var(--amber);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+    }
+
+    .poc-modal-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-confirm-delete {
+        flex: 1;
+        padding: 0.78rem;
+        background: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-confirm-delete:hover { background: #b91c1c; }
+
+    .btn-confirm-rename {
+        flex: 1;
+        padding: 0.78rem;
+        background: var(--amber);
+        color: var(--dark);
+        border: none;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-confirm-rename:hover { background: var(--amber-dark); }
+
+    .btn-cancel {
+        flex: 1;
+        padding: 0.78rem;
+        background: var(--light);
+        color: var(--mid);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel:hover { border-color: var(--amber); color: var(--amber-dark); }
+
+    @media (max-width: 600px) {
+        .main-wrap { padding: 0 1rem; margin-top: 1.5rem; }
+        .hero-strip { padding: 2rem 1.25rem; }
+        .items-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+        .menu-card-header { flex-direction: column; align-items: flex-start; }
+        .menu-card-actions { width: 100%; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 
-    {% if show_menu_created_notification %}
-        <div class="notification" id="notification">
-            <div class="d-grid justify-content-start">
+<!-- ── NOTIFICATION ── -->
+{% if show_menu_created_notification %}
+<div class="poc-notification" id="poc-notification">
+    <div class="poc-notification-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+    </div>
+    <div class="poc-notification-text">
+        <div class="poc-notification-title">Menu created!</div>
+        <div class="poc-notification-sub">Add items to complete your menu.</div>
+    </div>
+    <button class="poc-notification-close" onclick="document.getElementById('poc-notification').remove()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+    </button>
+</div>
+{% endif %}
 
-                <div>Successfully created menu!</div>
-
-                <div> Please Add items to the menu.</div>
-            </div>
-            <button id="notification-close-btn" class="btn btn-outline-success">Close</button>
+<!-- ── HERO ── -->
+<div class="hero-strip">
+    <div class="hero-inner">
+        <div>
+            <div class="hero-label">Restaurant Dashboard</div>
+            <div class="hero-title">Your <em>Menus</em></div>
+            <div class="hero-sub">Manage your menus and menu items.</div>
         </div>
+        {% if restaurant.is_publishable %}
+        <a href="{% url 'restaurant:add_menu' %}" class="btn-amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add New Menu
+        </a>
+        {% endif %}
+    </div>
+</div>
 
-        <script>
-            message_close_btn = document.getElementById('notification-close-btn')
-            notification = document.getElementById('notification')
+<!-- ── MAIN ── -->
+<div class="main-wrap">
 
-            message_close_btn.addEventListener('click', e => {
-                notification.style.display = 'none'
-            })
-
-        </script>
+    {% if not restaurant.is_publishable %}
+    <div class="warning-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div class="warning-banner-text">
+            Please fill in your restaurant information in the
+            <a href="{% url 'restaurant:edit_restaurant' %}">Restaurant tab</a>
+            before adding menus.
+        </div>
+    </div>
     {% endif %}
-    <div class="main-container rounded-elem">
-        <h1>Menus</h1>
 
+    {% if menu_list %}
         {% for menu in menu_list %}
-            <div class="item">
-                <h2>{{ menu.name }}</h2>
-                <ul>
-                    {% for item in menu.items %}
-                        <li class="menu-item">
+        <div class="menu-card" id="menu-card-{{ menu.pk }}">
+            <div class="menu-card-header">
+                <div class="menu-card-header-left">
+                    <div class="menu-dot"></div>
+                    <span class="menu-name" id="menu-name-{{ menu.pk }}">{{ menu.name }}</span>
+                    <span class="menu-item-count">{{ menu.items|length }} item{{ menu.items|length|pluralize }}</span>
+                </div>
+                <div class="menu-card-actions">
 
-                            <div>{{ item.name }}</div>
-                            {#                            <div>{{ base }}</div>#}
-                            <img width="100px" src="{{ item.image.url }}" alt="">
-                            <div class="fw-bold">Rs. {{ item.price }}</div>
-                            <div>{{ item.description }}</div>
-                        </li>
-                    {% endfor %}
+                    <!-- Rename -->
+                    <button class="btn-rename" onclick="openRenameModal('{{ menu.pk }}', '{{ menu.name }}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        Rename
+                    </button>
 
-                </ul>
+                    <!-- Edit Items -->
+                    <a href="{% url 'restaurant:edit_menu' menu.pk %}" class="btn-edit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        Edit Items
+                    </a>
 
-                <div class="d-flex justify-content-end gap-4">
-                    <a href="{% url 'restaurant:edit_menu' menu.pk %}" class="btn btn-warning btn-lg my-3">Edit</a>
-                    <form id="delete-form-{{ menu.pk }}" method="POST" action="{% url 'restaurant:delete_menu' %}">
+                    <!-- Delete -->
+                    <button class="btn-delete" onclick="openDeleteModal('{{ menu.pk }}', '{{ menu.name }}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                            <path d="M10 11v6"/><path d="M14 11v6"/>
+                            <path d="M9 6V4h6v2"/>
+                        </svg>
+                        Delete
+                    </button>
+
+                    <!-- Hidden delete form -->
+                    <form id="delete-form-{{ menu.pk }}" method="POST"
+                          action="{% url 'restaurant:delete_menu' %}" style="display:none;">
                         {% csrf_token %}
                         <input type="hidden" name="pk" value="{{ menu.pk }}">
-                        <button id="delete-form-btn-{{ menu.pk }}" type="button" class="btn btn-danger btn-lg my-3">
-                            Delete
-                        </button>
+                    </form>
+
+                    <!-- Hidden rename form -->
+                    <form id="rename-form-{{ menu.pk }}" method="POST"
+                          action="{% url 'restaurant:edit_menu' menu.pk %}" style="display:none;">
+                        {% csrf_token %}
+                        <input type="hidden" name="rename" value="1">
+                        <input type="hidden" name="name" id="rename-hidden-{{ menu.pk }}">
                     </form>
 
                 </div>
-
             </div>
 
-            <div class="modal" id="modal-{{ menu.pk }}">
-                <div class="modal-content">
-                    <p>Are you Sure you want to delete menu "{{ menu.name }}"?</p>
-                    <div class="d-flex justify-content-end">
-                        <button id="yes-{{ menu.pk }}" class="btn btn-danger">Yes</button>
-                        <button id="no-{{ menu.pk }}" class="btn btn-success">No</button>
+            <div class="menu-items-body">
+                {% if menu.items %}
+                <div class="items-grid">
+                    {% for item in menu.items %}
+                    <div class="item-tile">
+                        {% if item.image %}
+                            <img class="item-tile-img" src="{{ item.image.url }}" alt="{{ item.name }}">
+                        {% else %}
+                            <div class="item-tile-img-placeholder">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21 15 16 10 5 21"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        <div class="item-tile-body">
+                            <div class="item-tile-name">{{ item.name }}</div>
+                            <div class="item-tile-desc">{{ item.description }}</div>
+                            <div class="item-tile-footer">
+                                <span class="item-tile-price">Rs {{ item.price }}</span>
+                                {% if item.average_rating > 0 %}
+                                <span class="item-tile-rating">★ {{ item.average_rating }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
-
+                {% else %}
+                <div class="menu-items-empty">
+                    No items yet —
+                    <a href="{% url 'restaurant:edit_menu' menu.pk %}"
+                       style="color:var(--amber-dark); font-weight:600; text-decoration:none;">
+                        add your first item
+                    </a>
+                </div>
+                {% endif %}
             </div>
-
-            <script>
-                delete_form_btn_{{ menu.pk }} = document.getElementById('delete-form-btn-{{ menu.pk }}')
-                delete_form_{{ menu.pk }} = document.getElementById('delete-form-{{ menu.pk }}')
-                current_modal_{{ menu.pk }} = document.getElementById('modal-{{ menu.pk }}')
-                yes_btn_{{ menu.pk }} = document.getElementById('yes-{{ menu.pk }}')
-                no_btn_{{ menu.pk }} = document.getElementById(('no-{{ menu.pk }}'))
-
-
-                delete_form_btn_{{ menu.pk }}.addEventListener('click', () => {
-                    current_modal_{{ menu.pk }}.style.display = 'flex'
-                })
-
-                document.addEventListener('click', e => {
-                    if (e.target === current_modal_{{ menu.pk }}) {
-                        current_modal_{{ menu.pk }}.style.display = 'none'
-
-                    }
-                })
-
-                yes_btn_{{ menu.pk }}.addEventListener('click', () => {
-                    delete_form_{{ menu.pk }}.submit()
-                })
-
-                no_btn_{{ menu.pk }}.addEventListener('click', () => {
-                    current_modal_{{ menu.pk }}.style.display = 'none'
-                })
-
-
-            </script>
+        </div>
         {% endfor %}
 
-        {% if restaurant.is_publishable %}
-            <div>
-                <a href="{% url 'restaurant:add_menu' %}" class="btn btn-warning btn-lg m-3">Add A New Menu</a>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
             </div>
-        {% else %}
-            <div class="text-center fs-4">
-                Please Fill in the restaurant Information in the Restaurant Tab First...
-            </div>
-        {% endif %}
+            <div class="empty-title">No menus yet</div>
+            <div class="empty-sub">Create your first menu to start listing your dishes for customers.</div>
+            {% if restaurant.is_publishable %}
+            <a href="{% url 'restaurant:add_menu' %}" class="btn-amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Create First Menu
+            </a>
+            {% endif %}
+        </div>
+    {% endif %}
 
+</div>
+
+<!-- ── DELETE MODAL ── -->
+<div class="poc-modal-backdrop" id="delete-modal-backdrop" onclick="closeDeleteModalOnBackdrop(event)">
+    <div class="poc-modal">
+        <div class="poc-modal-icon danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/>
+                <path d="M9 6V4h6v2"/>
+            </svg>
+        </div>
+        <div class="poc-modal-title">Delete menu?</div>
+        <div class="poc-modal-sub" id="delete-modal-sub">
+            This will permanently delete this menu and all its items. This action cannot be undone.
+        </div>
+        <div class="poc-modal-actions">
+            <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn-confirm-delete" id="delete-modal-confirm">Delete</button>
+        </div>
     </div>
+</div>
+
+<!-- ── RENAME MODAL ── -->
+<div class="poc-modal-backdrop" id="rename-modal-backdrop" onclick="closeRenameModalOnBackdrop(event)">
+    <div class="poc-modal">
+        <div class="poc-modal-icon success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+        </div>
+        <div class="poc-modal-title">Rename menu</div>
+        <div class="poc-modal-sub">Enter a new name for this menu.</div>
+        <input type="text" class="rename-input" id="rename-input" placeholder="Menu name…" maxlength="100">
+        <div class="poc-modal-actions">
+            <button class="btn-cancel" onclick="closeRenameModal()">Cancel</button>
+            <button class="btn-confirm-rename" id="rename-modal-confirm">Save Name</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── DELETE MODAL ──
+    let currentDeletePk = null;
+
+    function openDeleteModal(pk, name) {
+        currentDeletePk = pk;
+        document.getElementById('delete-modal-sub').textContent =
+            `This will permanently delete "${name}" and all its items. This action cannot be undone.`;
+        document.getElementById('delete-modal-backdrop').classList.add('open');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('delete-modal-backdrop').classList.remove('open');
+        currentDeletePk = null;
+    }
+
+    function closeDeleteModalOnBackdrop(e) {
+        if (e.target === document.getElementById('delete-modal-backdrop')) closeDeleteModal();
+    }
+
+    document.getElementById('delete-modal-confirm').addEventListener('click', () => {
+        if (currentDeletePk) {
+            document.getElementById('delete-form-' + currentDeletePk).submit();
+        }
+    });
+
+    // ── RENAME MODAL ──
+    let currentRenamePk = null;
+
+    function openRenameModal(pk, currentName) {
+        currentRenamePk = pk;
+        const input = document.getElementById('rename-input');
+        input.value = currentName;
+        document.getElementById('rename-modal-backdrop').classList.add('open');
+        setTimeout(() => { input.focus(); input.select(); }, 100);
+    }
+
+    function closeRenameModal() {
+        document.getElementById('rename-modal-backdrop').classList.remove('open');
+        currentRenamePk = null;
+    }
+
+    function closeRenameModalOnBackdrop(e) {
+        if (e.target === document.getElementById('rename-modal-backdrop')) closeRenameModal();
+    }
+
+    // Submit rename via AJAX so page stays in place
+    document.getElementById('rename-modal-confirm').addEventListener('click', async () => {
+        if (!currentRenamePk) return;
+
+        const newName = document.getElementById('rename-input').value.trim();
+        if (!newName) {
+            document.getElementById('rename-input').focus();
+            return;
+        }
+
+        const form = document.getElementById('rename-form-' + currentRenamePk);
+        document.getElementById('rename-hidden-' + currentRenamePk).value = newName;
+
+        const formData = new FormData(form);
+
+        try {
+            await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            });
+
+            // Update name in DOM without page reload
+            document.getElementById('menu-name-' + currentRenamePk).textContent = newName;
+            closeRenameModal();
+
+            // Show success toast
+            showToast('Menu renamed to "' + newName + '"');
+        } catch (e) {
+            // Fallback: submit normally
+            form.submit();
+        }
+    });
+
+    // Allow Enter key in rename input
+    document.getElementById('rename-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('rename-modal-confirm').click();
+        if (e.key === 'Escape') closeRenameModal();
+    });
+
+    // ── TOAST ──
+    function showToast(message) {
+        const existing = document.getElementById('poc-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'poc-toast';
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 10000;
+            background: white;
+            border: 1.5px solid #a7f3d0;
+            border-left: 4px solid #10b981;
+            border-radius: 14px;
+            padding: 0.85rem 1.25rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: #065f46;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        `;
+        toast.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            ${message}
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+    }
+</script>
+
 {% endblock %}

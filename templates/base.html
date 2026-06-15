@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href={% static 'min.css' %}>
 
+    <script src="https://unpkg.com/htmx.org@2.0.1"></script>
     <script src="{% static 'min.js' %}"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -96,9 +97,70 @@
 {% endblock %}
 
 
-{% include 'base-footer.html' %}
+{% if request.user.is_authenticated %}
+    {% if request.user.is_restaurant_owner or request.user.is_rider %}
+<div id="new-order-alert" style="display:none;position:fixed;top:1rem;right:1rem;background:#7c3aed;color:white;padding:0.75rem 1.25rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;box-shadow:0 8px 24px rgba(124,58,237,0.35);z-index:9999;cursor:pointer;align-items:center;gap:0.5rem;animation:bounce 1s infinite;">
+    <span>🔔</span>
+    <span id="new-order-count-text">New order!</span>
+</div>
 
+<style>
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+</style>
+
+<script>
+(function() {
+    let checkUrl = null;
+    let redirectUrl = null;
+    let lastCount = 0;
+
+    {% if request.user.is_restaurant_owner %}
+    checkUrl = "{% url 'restaurant:check_new_orders' %}";
+    redirectUrl = "{% url 'restaurant:track_orders' %}";
+    {% elif request.user.is_rider %}
+    checkUrl = "{% url 'rider:check_new_orders' %}";
+    redirectUrl = "{% url 'rider:track_orders' %}";
+    {% endif %}
+
+    if (checkUrl) {
+        const alertBox = document.getElementById('new-order-alert');
+        const countText = document.getElementById('new-order-count-text');
+
+        function poll() {
+            fetch(checkUrl)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.count > lastCount) {
+                        new Audio('/static/sounds/notification.mp3').play().catch(()=>{});
+                    }
+                    lastCount = data.count;
+
+                    if (data.count > 0) {
+                        countText.textContent = data.count === 1
+                            ? "New order!"
+                            : `${data.count} new orders!`;
+                        alertBox.style.display = 'flex';
+                    } else {
+                        alertBox.style.display = 'none';
+                    }
+                })
+                .catch(() => {});
+        }
+
+        alertBox.addEventListener('click', () => {
+            window.location.href = redirectUrl;
+        });
+
+        poll();
+        setInterval(poll, 8000);
+    }
+})();
+</script>
+    {% endif %}
+{% endif %}
 
 </body>
 </html>
-

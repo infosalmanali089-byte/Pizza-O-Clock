@@ -1,223 +1,1018 @@
-{% extends 'base.html' %}
-
 {% load static %}
-
-{% block title %}
-    Edit Profile
-{% endblock %}
-
-{% block styles %}
-
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="{% static 'icons/favicon512x512.png' %}">
+    <title>Edit Rider Profile — Pizza'O Clock</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
+        *, ::after, ::before { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --amber-dark: #d97706;
+            --dark: #1c1917;
+            --mid: #57534e;
+            --muted: #a8a29e;
+            --light: #fafaf9;
+            --border: #e7e5e4;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
         body {
-            background-color: #f2f6fc;
-            color: #69707a;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
         }
 
-        .img-account-profile {
-            height: 10rem;
+        /* ── TOPBAR ── */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid #f0efee;
+            padding: 0 2rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
         }
 
-        .rounded-circle {
-            border-radius: 50% !important;
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
         }
 
-        .card {
-            box-shadow: 0 0.15rem 1.75rem 0 rgb(33 40 50 / 15%);
+        .brand-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--amber);
         }
 
-        .card .card-header {
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            color: var(--dark);
+        }
+
+        .topbar-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
             font-weight: 500;
+            color: var(--mid);
+            text-decoration: none;
+            padding: 0.45rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            transition: all 0.2s;
+        }
+        .topbar-back:hover {
+            border-color: var(--amber);
+            color: var(--amber-dark);
+            background: var(--amber-light);
         }
 
-        .card-header:first-child {
-            border-radius: 0.35rem 0.35rem 0 0;
+        /* ── HERO STRIP ── */
+        .hero-strip {
+            background: var(--dark);
+            padding: 3rem 2rem 2.5rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .card-header {
-            padding: 1rem 1.35rem;
-            margin-bottom: 0;
-            background-color: rgba(33, 40, 50, 0.03);
-            border-bottom: 1px solid rgba(33, 40, 50, 0.125);
+        .hero-strip::before {
+            content: '';
+            position: absolute;
+            top: -80px; right: -80px;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.1);
         }
 
-        .form-control, .dataTable-input {
-            display: block;
+        .hero-strip::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; left: 30%;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.06);
+        }
+
+        .hero-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .hero-avatar {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 3px solid rgba(245,158,11,0.5);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .hero-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin-bottom: 0.3rem;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            color: white;
+            line-height: 1.2;
+        }
+
+        .hero-title em { color: var(--amber); font-style: italic; }
+
+        .hero-sub {
+            color: var(--muted);
+            font-size: 0.88rem;
+            margin-top: 0.3rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.6rem;
+            background: rgba(245,158,11,0.15);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 50px;
+            padding: 3px 10px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--amber);
+            letter-spacing: 0.05em;
+        }
+
+        /* ── MAIN ── */
+        .main-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 5rem;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 1.75rem;
+            align-items: start;
+        }
+
+        /* ── CARDS ── */
+        .poc-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .poc-card-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f0efee;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .poc-card-header-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--amber);
+        }
+
+        .poc-card-body { padding: 1.75rem 1.5rem; }
+
+        /* ── AVATAR CARD ── */
+        .avatar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.1rem;
+        }
+
+        .avatar-ring {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+            box-shadow: 0 8px 24px rgba(245,158,11,0.25);
+        }
+
+        .avatar-ring img {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+        }
+
+        .avatar-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.05rem;
+            color: var(--dark);
+            text-align: center;
+        }
+
+        .avatar-email {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-align: center;
+            margin-top: -0.6rem;
+        }
+
+        /* Availability toggle */
+        .availability-toggle {
             width: 100%;
-            padding: 0.875rem 1.125rem;
-            font-size: 0.875rem;
-            font-weight: 400;
-            line-height: 1;
-            color: #69707a;
-            background-color: #fff;
-            background-clip: padding-box;
-            border: 1px solid #c5ccd6;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            border-radius: 0.35rem;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            background: var(--light);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
         }
 
-        .nav-borders .nav-link.active {
-            color: #0061f2;
-            border-bottom-color: #0061f2;
+        .availability-text { flex: 1; }
+
+        .availability-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--dark);
         }
 
-        .nav-borders .nav-link {
-            color: #69707a;
-            border-bottom-width: 0.125rem;
-            border-bottom-style: solid;
-            border-bottom-color: transparent;
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-            padding-left: 0;
-            padding-right: 0;
-            margin-left: 1rem;
-            margin-right: 1rem;
+        .availability-sub {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.15rem;
+            line-height: 1.4;
         }
 
-        #map {
-            height: 180px;
-            margin: 0.5rem
+        .toggle-switch {
+            position: relative;
+            width: 46px; height: 26px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--border);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background 0.25s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px; height: 18px;
+            left: 4px; top: 4px;
+            border-radius: 50%;
+            background: white;
+            transition: transform 0.25s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch input:checked + .toggle-slider { background: var(--amber); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+        /* ── FORM FIELDS ── */
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .field-row.single { grid-template-columns: 1fr; }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .field-group label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--mid);
+            letter-spacing: 0.03em;
+        }
+
+        .field-group input {
+            padding: 0.82rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
+            color: var(--dark);
+            background: var(--light);
+            outline: none;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .field-group input:focus {
+            border-color: var(--amber);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+        }
+
+        .field-group input::placeholder { color: #c4bfbb; }
+
+        /* ── LOCATION BOX ── */
+        .location-box {
+            background: var(--light);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .loc-row {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .loc-input-wrap {
+            flex: 1;
+            min-width: 160px;
+            position: relative;
+        }
+
+        .loc-input-wrap svg.loc-icon {
+            position: absolute;
+            left: 10px; top: 50%;
+            transform: translateY(-50%);
+            width: 15px; height: 15px;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .loc-input-wrap input {
+            width: 100%;
+            padding: 0.78rem 0.9rem 0.78rem 2.1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            color: var(--dark);
+            background: white;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .loc-input-wrap input:focus {
+            border-color: var(--amber);
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+        }
+
+        .loc-input-wrap input::placeholder { color: #c4bfbb; }
+
+        .loc-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.78rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background: white;
+            color: var(--mid);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .loc-btn:hover {
+            border-color: var(--amber);
+            color: var(--amber-dark);
+            background: var(--amber-light);
+        }
+
+        .loc-btn svg { width: 14px; height: 14px; }
+        .loc-btn.loading { opacity: 0.6; pointer-events: none; }
+
+        .loc-search-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.78rem 1.1rem;
+            background: var(--amber);
+            color: var(--dark);
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .loc-search-btn:hover { background: var(--amber-dark); }
+        .loc-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loc-search-btn svg { width: 14px; height: 14px; }
+
+        .loc-status {
+            font-size: 0.78rem;
+            min-height: 1rem;
+            padding: 0 0.2rem;
+            transition: all 0.3s;
+        }
+
+        .loc-status.success { color: var(--success); }
+        .loc-status.error   { color: var(--danger); }
+        .loc-status.info    { color: var(--muted); }
+
+        .map-wrap {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1.5px solid var(--border);
+        }
+
+        #map { height: 240px; width: 100%; }
+
+        .map-hint {
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* ── DELIVERY ZONE ── */
+        .zone-info {
+            background: var(--amber-light);
+            border: 1.5px solid rgba(245,158,11,0.3);
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            font-size: 0.82rem;
+            color: var(--amber-dark);
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .zone-info-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+        /* ── DIVIDER ── */
+        .section-divider {
+            height: 1px;
+            background: #f0efee;
+            margin: 1.5rem 0;
+        }
+
+        .section-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        /* ── BUTTONS ── */
+        .btn-amber {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.85rem 1.75rem;
+            background: var(--amber);
+            color: var(--dark);
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-amber:hover {
+            background: var(--amber-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(217,119,6,0.3);
+        }
+
+        .btn-amber:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.85rem 1.75rem;
+            background: white;
+            color: var(--mid);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--amber);
+            color: var(--amber-dark);
+            background: var(--amber-light);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.75rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #f0efee;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 900px) {
+            .profile-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .field-row { grid-template-columns: 1fr; }
+            .main-wrap { padding: 1.5rem 1rem 3rem; }
+            .loc-row { flex-direction: column; }
+            .loc-btn, .loc-search-btn { width: 100%; justify-content: center; }
+            .hero-strip { padding: 2rem 1.25rem; }
+            .topbar { padding: 0 1.25rem; }
         }
     </style>
-{% endblock %}
+</head>
+<body>
 
-{% block content %}
+<!-- TOPBAR -->
+<nav class="topbar">
+    <a href="{% url 'landingapp:landing_page' %}" class="topbar-brand">
+        <div class="brand-dot"></div>
+        <span class="brand-name">Pizza'O Clock</span>
+    </a>
+    <a href="{% url 'landingapp:landing_page' %}" class="topbar-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back to Home
+    </a>
+</nav>
 
-    <div class="container-xl px-4 mt-4">
-        <!-- Account page navigation-->
+<!-- HERO STRIP -->
+<div class="hero-strip">
+    <div class="hero-inner">
+        {% if user.profile_picture %}
+            <img class="hero-avatar" src="{{ user.profile_picture.url }}" alt="Profile">
+        {% else %}
+            <img class="hero-avatar" src="http://bootdey.com/img/Content/avatar/avatar1.png" alt="Profile">
+        {% endif %}
+        <div class="hero-text">
+            <div class="hero-label">Rider Dashboard</div>
+            <div class="hero-title">{{ rider.first_name }} <em>{{ rider.last_name }}</em></div>
+            <div class="hero-sub">{{ rider.email }}</div>
+            <div class="hero-badge">🚲 Delivery Rider</div>
+        </div>
+    </div>
+</div>
 
-        <div class="row">
+<!-- MAIN -->
+<div class="main-wrap">
+    <div class="profile-grid">
 
-            <div class="col-xl-8">
-                <div class="card mb-4">
+        <!-- Left: Avatar + Availability Card -->
+        <div style="display:flex; flex-direction:column; gap:1.75rem;">
 
-                    <div class="card-header">Rider Details</div>
-                    <div class="card-body">
-                        <form method="POST">
-                            {% csrf_token %}
-                            <div class="row gx-3 mb-3">
-                                <div class="col-md-6">
-                                    <label class="small mb-1" for="inputFirstName">First name</label>
-                                    <input required name="first_name" class="form-control" id="inputFirstName" type="text"
-                                           placeholder="Enter your first name" value="{{ rider.first_name }}">
-                                </div>
-                                <!-- Form Group (last name)-->
-                                <div class="col-md-6">
-                                    <label class="small mb-1" for="inputLastName">Last name</label>
-                                    <input required name="last_name" class="form-control" id="inputLastName" type="text"
-                                           placeholder="Enter your last name" value="{{ rider.last_name }}">
-                                </div>
-                            </div>
-                            <div class="row gx-3 mb-3">
-
-                                <div class="col-md-6">
-                                    <label class="small mb-1" for="inputLocation">Location</label>
-                                    <input type="hidden" name="latitude" value="{{ user.get_latitude }}">
-                                    <input type="hidden" name="longitude" value="{{ user.get_longitude }}">
-
-                                    <input required readonly name="location" class="form-control" id="inputLocation" type="text"
-                                           placeholder="Enter your location" value="{{ user.get_location }}">
-                                    <div id="map"></div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Availability </label>
-
-                                    <div class="form-check">
-                                        <input name="is_available_for_ride" class="form-check-input" type="checkbox" value="1"
-                                               id="flexCheckChecked"
-                                                {% if rider.is_available_for_ride %} checked {% endif %}>
-                                        <label class="form-check-label" for="flexCheckChecked">
-                                            [If Checked, The rider will be assigned orders.]
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="small mb-1" for="inputEmailAddress">Email address</label>
-                                <input required name="email" class="form-control" id="inputEmailAddress" type="email"
-                                       placeholder="Enter your email address" value="{{ rider.email }}">
-                            </div>
-                            <!-- Form Row-->
-                            <div class="row gx-3 mb-3">
-                                <!-- Form Group (phone number)-->
-                                <div class="col-md-6">
-                                    <label class="small mb-1" for="inputPhone">Phone number</label>
-                                    <input min="1000000000" max="99999999999" required name="phone" class="form-control" id="inputPhone" type="number"
-                                           placeholder="Enter your phone number" value="{{ rider.phone }}">
-                                </div>
-
-                            </div>
-                            <!-- Save changes button-->
-                            <button id="save-btn" class="btn btn-warning" type="submit">Save changes</button>
-                        </form>
+            <!-- Avatar upload (rider doesn't have one — stub for consistency) -->
+            <div class="poc-card">
+                <div class="poc-card-header">
+                    <div class="poc-card-header-dot"></div>
+                    Rider Profile
+                </div>
+                <div class="poc-card-body">
+                    <div class="avatar-wrap">
+                        <div class="avatar-ring">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Profile">
+                            {% else %}
+                                <img src="http://bootdey.com/img/Content/avatar/avatar1.png" alt="Profile">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="avatar-name">{{ rider.first_name }} {{ rider.last_name }}</div>
+                            <div class="avatar-email">{{ rider.email }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Availability card (separate for clarity) -->
+            <div class="poc-card">
+                <div class="poc-card-header">
+                    <div class="poc-card-header-dot"></div>
+                    Availability
+                </div>
+                <div class="poc-card-body" style="padding-bottom:1.25rem;">
+                    <label class="availability-toggle" style="cursor:pointer;">
+                        <div class="availability-text">
+                            <div class="availability-title">Accept new orders</div>
+                            <div class="availability-sub">When active, you will be assigned incoming delivery orders.</div>
+                        </div>
+                        <!-- Real checkbox hidden, used by form -->
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="is_available_for_ride" value="1" form="rider-form"
+                                   {% if rider.is_available_for_ride %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+
+                    <div style="margin-top:1rem; font-size:0.78rem; color:var(--muted); line-height:1.5;">
+                        Toggle this off when you're not available to take new rides. You can change this at any time.
+                    </div>
+                </div>
+            </div>
+
         </div>
+
+        <!-- Right: Details + Location Card -->
+        <div>
+            <div class="poc-card">
+                <div class="poc-card-header">
+                    <div class="poc-card-header-dot"></div>
+                    Rider Details
+                </div>
+                <div class="poc-card-body">
+                    <form method="POST" id="rider-form">
+                        {% csrf_token %}
+
+                        <!-- Name -->
+                        <div class="section-label">Personal Information</div>
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label>First Name</label>
+                                <input required type="text" name="first_name"
+                                       placeholder="First name" value="{{ rider.first_name }}">
+                            </div>
+                            <div class="field-group">
+                                <label>Last Name</label>
+                                <input required type="text" name="last_name"
+                                       placeholder="Last name" value="{{ rider.last_name }}">
+                            </div>
+                        </div>
+
+                        <div class="field-row single">
+                            <div class="field-group">
+                                <label>Email Address</label>
+                                <input required type="email" name="email"
+                                       placeholder="you@example.com" value="{{ rider.email }}">
+                            </div>
+                        </div>
+
+                        <div class="field-row single">
+                            <div class="field-group">
+                                <label>Phone Number</label>
+                                <input required type="number" name="phone"
+                                       placeholder="03xxxxxxxxx"
+                                       min="1000000000" max="99999999999"
+                                       value="{{ rider.phone }}">
+                            </div>
+                        </div>
+
+                        <div class="section-divider"></div>
+
+                        <!-- Location -->
+                        <div class="section-label">Delivery Location & Zone</div>
+
+                        <div class="zone-info" style="margin-bottom:1rem;">
+                            <span class="zone-info-icon">ℹ️</span>
+                            <span>Your pinned location defines your <strong>delivery zone</strong>. Orders within your zone radius will be assigned to you. Keep this updated to your current area.</span>
+                        </div>
+
+                        <div class="field-row single">
+                            <div class="field-group">
+                                <label>Your Location</label>
+
+                                <input type="hidden" name="latitude"  id="lat-input"  value="{{ user.get_latitude }}">
+                                <input type="hidden" name="longitude" id="lng-input"  value="{{ user.get_longitude }}">
+                                <input type="hidden" name="location"  id="loc-hidden" value="{{ user.get_location }}">
+
+                                <div class="location-box">
+
+                                    <!-- Text + GPS + Search row -->
+                                    <div class="loc-row">
+                                        <div class="loc-input-wrap">
+                                            <svg class="loc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                                <circle cx="12" cy="10" r="3"/>
+                                            </svg>
+                                            <input type="text" id="location-input"
+                                                   placeholder="Type city or area…"
+                                                   autocomplete="off"
+                                                   value="{{ user.get_location }}">
+                                        </div>
+
+                                        <button type="button" class="loc-btn" id="use-location-btn">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                                <line x1="12" y1="2" x2="12" y2="5"/>
+                                                <line x1="12" y1="19" x2="12" y2="22"/>
+                                                <line x1="2" y1="12" x2="5" y2="12"/>
+                                                <line x1="19" y1="12" x2="22" y2="12"/>
+                                            </svg>
+                                            Use GPS
+                                        </button>
+
+                                        <button type="button" class="loc-search-btn" id="search-btn" disabled>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="11" cy="11" r="8"/>
+                                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                            </svg>
+                                            Search
+                                        </button>
+                                    </div>
+
+                                    <div class="loc-status info" id="loc-status">
+                                        {% if user.get_location %}📍 Current: {{ user.get_location|truncatechars:60 }}{% endif %}
+                                    </div>
+
+                                    <!-- Map -->
+                                    <div class="map-wrap">
+                                        <div id="map"></div>
+                                    </div>
+
+                                    <div class="map-hint">
+                                        📍 Click anywhere on the map to update your delivery zone pin
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                       <div class="form-actions">
+                            <button type="submit" class="btn-amber" id="save-btn">Save Changes</button>
+                            <a href="{% url 'landingapp:landing_page' %}" class="btn-outline">Cancel</a>
+                        </div>
+
+                    </form>
+
+                    <!-- Delete Account — outside the rider-form -->
+                    <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid #f0efee;">
+                        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem;">
+                            Deleting your account is permanent and cannot be undone.
+                        </p>
+                        <form method="POST" action="{% url 'rider:delete_account' %}"
+                              onsubmit="return confirm('Are you sure? This cannot be undone.')">
+                            {% csrf_token %}
+                            <button type="submit"
+                                style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.75rem 1.5rem;
+                                       background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;
+                                       border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;
+                                       font-weight:600;cursor:pointer;transition:all 0.2s;">
+                                🗑 Delete My Account
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
     </div>
+</div>
 
+<script>
+    // ── Map setup
+    const initialLat = "{{ user.get_latitude }}";
+    const initialLng = "{{ user.get_longitude }}";
+    const initialLoc = "{{ user.get_location }}";
 
-    <script>
-        const map = L.map('map', {
-            {% if user.get_location != '' %}
-                center: [{{ user.get_latitude }}, {{ user.get_longitude }}],
-            {% else %}
-                center: [31.5204, 74.3587],
-            {% endif %}
-            zoom: 13
-        });
+    const map = L.map('map', {
+        center: (initialLat && initialLng) ? [parseFloat(initialLat), parseFloat(initialLng)] : [31.5204, 74.3587],
+        zoom: 13
+    });
 
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Delivery zone circle
+    let marker, zoneCircle;
+
+    function drawZone(lat, lng) {
+        if (zoneCircle) map.removeLayer(zoneCircle);
+        zoneCircle = L.circle([lat, lng], {
+            radius: 5000,           // 5km delivery radius
+            color: '#f59e0b',
+            fillColor: '#f59e0b',
+            fillOpacity: 0.08,
+            weight: 1.5,
+            dashArray: '6 4',
         }).addTo(map);
+    }
 
-        let marker;
-        {% if user.get_latitude  and user.get_longitude %}
-            marker = L.marker([
-                {{ user.get_latitude }},
-                {{ user.get_longitude }},
-            ]).addTo(map);
-        {% endif %}
+    if (initialLat && initialLng) {
+        marker = L.marker([parseFloat(initialLat), parseFloat(initialLng)]).addTo(map);
+        drawZone(parseFloat(initialLat), parseFloat(initialLng));
+    }
 
-        let latlng;
-        map.on('click', function (e) {
-            document.getElementById('save-btn').setAttribute('disabled', 'true')
-            if (marker)
-                map.removeLayer(marker);
-            console.log(e.latlng); // e is an event object (MouseEvent in this case)
-            latlng = e.latlng
-            marker = L.marker(e.latlng).addTo(map);
+    // ── Elements
+    const latInput      = document.getElementById('lat-input');
+    const lngInput      = document.getElementById('lng-input');
+    const locHidden     = document.getElementById('loc-hidden');
+    const locationInput = document.getElementById('location-input');
+    const statusEl      = document.getElementById('loc-status');
+    const useLocBtn     = document.getElementById('use-location-btn');
+    const searchBtn     = document.getElementById('search-btn');
+    const saveBtn       = document.getElementById('save-btn');
 
-            document.querySelector('input[name="latitude"]').value = e.latlng.lat
-            document.querySelector('input[name="longitude"]').value = e.latlng.lng
+    function setStatus(msg, type = 'info') {
+        statusEl.textContent = msg;
+        statusEl.className = 'loc-status ' + type;
+    }
 
+    function placeMarker(lat, lng) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(map);
+        map.setView([lat, lng], 13);
+        latInput.value = lat;
+        lngInput.value = lng;
+        drawZone(lat, lng);
+    }
 
-            fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${latlng.lat}&lon=${latlng.lng}&apiKey=c9743ce533884c64a9f4b465359d181f`)
-                .then(response => response.json())
-                .then(result => {
-                    document.getElementById('inputLocation').value = result.features[0].properties.formatted
+    function reverseGeocode(lat, lng) {
+        saveBtn.disabled = true;
+        fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=c9743ce533884c64a9f4b465359d181f`)
+            .then(r => r.json())
+            .then(data => {
+                const addr = data.features[0].properties.formatted;
+                locationInput.value = addr;
+                locHidden.value = addr;
+                setStatus('📍 Zone set: ' + addr.split(',').slice(0,2).join(','), 'success');
+                saveBtn.disabled = false;
+            })
+            .catch(() => {
+                setStatus('Could not resolve address.', 'error');
+                saveBtn.disabled = false;
+            });
+    }
 
-                    document.getElementById('save-btn').removeAttribute('disabled')
+    // ── Map click
+    map.on('click', function(e) {
+        placeMarker(e.latlng.lat, e.latlng.lng);
+        setStatus('Resolving address…', 'info');
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
 
-                })
-                .catch(error => console.log('error', error));
-        });
+   // Enter key triggers search
+    locationInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!searchBtn.disabled) searchBtn.click();
+        }
+    });
 
-    </script>
-{% endblock %}
+    // ── Type to enable search
+    locationInput.addEventListener('input', () => {
+        latInput.value = '';
+        lngInput.value = '';
+        locHidden.value = locationInput.value;
+        searchBtn.disabled = locationInput.value.trim() === '';
+        if (locationInput.value.trim()) {
+            setStatus('Press Search to find this location.', 'info');
+        } else {
+            setStatus('', 'info');
+        }
+    });
 
+    // ── Search by name (Nominatim)
+    searchBtn.addEventListener('click', async () => {
+        const city = locationInput.value.trim();
+        if (!city) return;
 
+        setStatus('🔍 Searching for ' + city + '…', 'info');
+        searchBtn.disabled = true;
+        searchBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"
+            style="width:14px;height:14px;animation:spin 1s linear infinite">
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.09-7.18"/>
+        </svg> Searching…`;
 
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1&countrycodes=pk`;
+            const res  = await fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'PizzaOClock/1.0' } });
+            const data = await res.json();
+
+            if (!data || data.length === 0) {
+                setStatus('❌ Location not found. Try a different name.', 'error');
+            } else {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                placeMarker(lat, lng);
+                const label = data[0].display_name.split(',').slice(0,2).join(',');
+                locationInput.value = data[0].display_name;
+                locHidden.value     = data[0].display_name;
+                setStatus('📍 Zone set: ' + label, 'success');
+            }
+        } catch {
+            setStatus('❌ Search failed. Check your connection.', 'error');
+        }
+
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg> Search`;
+    });
+
+    // ── GPS
+    useLocBtn.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            setStatus('Geolocation not supported by your browser.', 'error');
+            return;
+        }
+
+        useLocBtn.classList.add('loading');
+        useLocBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"
+            style="width:14px;height:14px;animation:spin 1s linear infinite">
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.09-7.18"/>
+        </svg> Detecting…`;
+        setStatus('Requesting your GPS location…', 'info');
+
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                placeMarker(pos.coords.latitude, pos.coords.longitude);
+                setStatus('Resolving address…', 'info');
+                reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+                restoreGpsBtn();
+            },
+            err => {
+                const msgs = { 1:'Location access denied.', 2:'Could not detect location.', 3:'Location request timed out.' };
+                setStatus(msgs[err.code] || 'Location error.', 'error');
+                restoreGpsBtn();
+            },
+            { timeout: 10000, maximumAge: 60000 }
+        );
+    });
+
+    function restoreGpsBtn() {
+        useLocBtn.classList.remove('loading');
+        useLocBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+            <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+        </svg> Use GPS`;
+    }
+</script>
+
+</body>
+</html>

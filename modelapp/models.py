@@ -1,4 +1,6 @@
 import datetime
+from django.utils import timezone
+from datetime import timedelta
 import secrets
 import ssl
 import threading
@@ -162,6 +164,7 @@ class Restaurant(models.Model):
     average_rating = models.FloatField(default=0)
     restaurant_image = models.ImageField(upload_to='restaurant_images/', null=True, blank=True)
     is_published = models.BooleanField(default=False)
+    minimum_order_amount = models.PositiveIntegerField(default=0)
 
     class Meta:
         indexes = [
@@ -206,6 +209,23 @@ class Restaurant(models.Model):
     def get_delivery_zones(self):
         return DeliveryZone.objects.filter(restaurant=self)
 
+    def get_delivery_fee(self, user_lat, user_lng):
+        import math
+        zones = list(self.get_delivery_zones())
+        if not zones:
+            return 50
+        def haversine(lat1, lng1, lat2, lng2):
+            R = 6371
+            d_lat = math.radians(float(lat2) - float(lat1))
+            d_lng = math.radians(float(lng2) - float(lng1))
+            a = (math.sin(d_lat/2)**2 +
+                 math.cos(math.radians(float(lat1))) *
+                 math.cos(math.radians(float(lat2))) *
+                 math.sin(d_lng/2)**2)
+            return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        nearest = min(zones, key=lambda z: haversine(user_lat, user_lng, z.latitude, z.longitude))
+        return nearest.delivery_fee
+    
     def set_rating(self, rating: int):
         self.total_rating += rating
         self.total_rating_population += 1
@@ -221,6 +241,7 @@ class DeliveryZone(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6, default=0)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
     location_in_string = models.CharField(max_length=500, blank=True, default='')
+    delivery_fee = models.PositiveIntegerField(default=50)
 
     class Meta:
         indexes = [
@@ -235,7 +256,7 @@ class Location(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     entity = models.ForeignKey(Person, on_delete=models.CASCADE)
-    location_in_string = models.CharField(max_length=500, blank=True, default='')
+    location_in_string = models.CharField(max_length=500, blank=True, null=True, default='')  # ← added null=True
 
     class Meta:
         indexes = [
@@ -260,7 +281,9 @@ class Wallet(models.Model):
 
 
 class OrderStatus(models.TextChoices):
+    PENDING = 'PENDING', 'Pending'
     PREPARING = 'PREPARING', 'Preparing'
+    RIDER_ASSIGNED = 'RIDER_ASSIGNED', 'Rider Assigned'
     RIDER_ON_WAY = 'RIDER_ON_WAY', 'Rider On Way'
     DELIVERED = 'DELIVERED', 'Delivered'
     CANCELLED = 'CANCELLED', 'Cancelled'
@@ -269,28 +292,114 @@ class OrderStatus(models.TextChoices):
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="User")
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, null=True, blank=True)
-    rider = models.ForeignKey(Rider, on_delete=models.CASCADE, related_name="Rider")
+    rider = models.ForeignKey(Rider, on_delete=models.SET_NULL, related_name="Rider", null=True, blank=True)
     status = models.CharField(max_length=100, choices=OrderStatus.choices, default=OrderStatus.PREPARING)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     is_rated = models.BooleanField(default=False)
 
     rider_otp = models.IntegerField(blank=True, null=True)
     user_otp = models.IntegerField(blank=True, null=True)
+    assigned_at = models.DateTimeField(blank=True, null=True)
+    rider_rejected_at = models.DateTimeField(blank=True, null=True)
+    last_rejected_rider = models.ForeignKey('Rider', on_delete=models.SET_NULL, null=True, blank=True, related_name='rejected_orders')
+    cancellation_reason = models.CharField(max_length=255, blank=True, default='')
+    rider_assignment_attempts = models.PositiveIntegerField(default=0)
 
     _total_amount = None
     objects = OrderManager()
 
     def is_rider_chat_open(self):
-        if self.status == OrderStatus.PREPARING or self.status == OrderStatus.RIDER_ON_WAY:
+        if self.status in (OrderStatus.PREPARING, OrderStatus.RIDER_ASSIGNED, OrderStatus.RIDER_ON_WAY):
             return True
         return False
 
     def get_status(self):
         return OrderStatus(self.status).label
 
+    def mark_as_accepted(self):
+        self.status = OrderStatus.PREPARING
+        self.save()
+    
     def mark_as_rider_on_way(self):
         self.status = OrderStatus.RIDER_ON_WAY
         self.save()
+    def assign_rider(self, rider):
+        self.rider = rider
+        self.status = OrderStatus.RIDER_ASSIGNED
+        self.assigned_at = timezone.now()
+        self.rider_assignment_attempts += 1
+        self.save()
+
+    def accept_by_rider(self):
+        self.status = OrderStatus.RIDER_ON_WAY
+        self.assigned_at = None
+        self.save()
+
+    def reject_by_rider(self):
+        self.last_rejected_rider = self.rider
+        self.rider = None
+        self.status = OrderStatus.PREPARING
+        self.assigned_at = None
+        self.rider_rejected_at = timezone.now()
+        self.save()
+    
+    def check_and_escalate_timeout(self):
+        if self.status in (OrderStatus.DELIVERED, OrderStatus.CANCELLED):
+            return None
+
+        now = timezone.now()
+
+        if self.status == OrderStatus.PENDING:
+            if self.created_at and (now - self.created_at) > timedelta(minutes=5):
+                self.mark_as_cancelled(reason="The restaurant did not respond in time.")
+                return 'auto_cancelled'
+
+        if self.status == OrderStatus.RIDER_ASSIGNED:
+            if self.assigned_at and (now - self.assigned_at) > timedelta(minutes=2):
+                rejecting_rider = self.rider
+                self.reject_by_rider()
+                if self.rider_assignment_attempts < 3:
+                    reassigned = assign_nearest_rider(self, exclude_rider=rejecting_rider)
+                    if reassigned is None:
+                        self.cancellation_reason = ""
+                        self.save()
+                    return 'rider_timeout_reassigned' if reassigned else 'no_rider_available'
+                else:
+                    self.mark_as_cancelled(reason="No riders are currently available in your area. We tried multiple times but couldn't find a rider.")
+                    return 'auto_cancelled_max_attempts'
+
+        if self.status == OrderStatus.PREPARING and not self.rider:
+            if self.rider_rejected_at:
+                if (now - self.rider_rejected_at) > timedelta(seconds=30):
+                    if self.rider_assignment_attempts < 3:
+                        reassigned = assign_nearest_rider(self, exclude_rider=self.last_rejected_rider)
+                        if reassigned:
+                            self.rider_rejected_at = None
+                            self.save()
+                            return 'reassigned_after_rejection'
+                        else:
+                            self.mark_as_cancelled(reason="No riders are currently available in your area. We tried multiple times but couldn't find a rider.")
+                            return 'auto_cancelled_no_rider'
+                    else:
+                        self.mark_as_cancelled(reason="No riders are currently available in your area. We tried multiple times but couldn't find a rider.")
+                        return 'auto_cancelled_no_rider'
+            else:
+                # No rider ever assigned and no rejection — stuck in PREPARING
+                # Cancel after 15 minutes if no rider found
+                if self.created_at and (now - self.created_at) > timedelta(minutes=15):
+                    self.mark_as_cancelled(reason="No riders were available in your area at this time. Please try ordering again.")
+                    return 'auto_cancelled_no_rider_available'
+
+        return None
+
+    def mark_as_rejected(self):
+        with atomic():
+            transaction = Transaction.objects.get(order=self)
+            transaction.status = TransactionStatus.REJECTED
+            transaction.save()
+            self.status = OrderStatus.CANCELLED
+            self.cancellation_reason = "The restaurant rejected your order."
+            self.save()
 
     def mark_as_stripe_payment_succeeded(self):
         with atomic():
@@ -305,13 +414,17 @@ class Order(models.Model):
             transaction.save()
             self.status = OrderStatus.DELIVERED
             self.save()
+            if self.rider:
+                self.rider.ride_count += 1
+                self.rider.save()
 
-    def mark_as_cancelled(self):
+    def mark_as_cancelled(self, reason=''):
         with atomic():
             transaction = Transaction.objects.get(order=self)
             transaction.status = TransactionStatus.REJECTED
             transaction.save()
             self.status = OrderStatus.CANCELLED
+            self.cancellation_reason = reason
             self.save()
 
     def get_ordered_items(self):
@@ -334,6 +447,8 @@ class Order(models.Model):
             item.item.get_stripe_price_id()
 
     def get_status_color(self):
+        if self.status == OrderStatus.RIDER_ASSIGNED:
+            return 'info'
         if self.status == OrderStatus.PREPARING:
             return 'primary'
 
@@ -385,10 +500,119 @@ Your STRIPE PAYMENT URL: {payment_url}
     def __str__(self):
         return (
                 str(self.restaurant.owner.email) + " -> "
-                + str(self.rider.email) + " -> "
+                + (self.rider.email if self.rider else "Unassigned") + " -> "
                 + str(self.user.email) + " -> "
                 + str(self.status)
         )
+
+def assign_nearest_rider(order: 'Order', exclude_rider=None):
+    import math
+    from django.utils import timezone
+    from datetime import timedelta
+    from django.db import transaction as db_transaction
+
+    with db_transaction.atomic():
+        # Lock order row to prevent double assignment
+        try:
+            locked_order = Order.objects.select_for_update().get(pk=order.pk)
+        except Order.DoesNotExist:
+            return None
+
+        # Don't assign if already assigned or delivered
+        if locked_order.status in (OrderStatus.RIDER_ASSIGNED, OrderStatus.RIDER_ON_WAY,
+                                    OrderStatus.DELIVERED, OrderStatus.CANCELLED):
+            return None
+
+        # Exclude busy riders (active in last 2 hours)
+        busy_rider_ids = Order.objects.filter(
+            status__in=[OrderStatus.RIDER_ASSIGNED, OrderStatus.RIDER_ON_WAY],
+            assigned_at__gte=timezone.now() - timedelta(hours=2)
+        ).exclude(rider=None).values_list('rider_id', flat=True)
+
+        available_riders = Rider.objects.filter(
+            is_available_for_ride=True
+        ).exclude(pk__in=busy_rider_ids)
+
+        if exclude_rider:
+            available_riders = available_riders.exclude(pk=exclude_rider.pk)
+
+        if locked_order.last_rejected_rider:
+            available_riders = available_riders.exclude(pk=locked_order.last_rejected_rider.pk)
+
+        if not available_riders.exists():
+            print(f"[assign_nearest_rider] No available riders for Order #{order.pk}")
+            return None
+
+        restaurant_lat = order.restaurant.get_latitude()
+        restaurant_lng = order.restaurant.get_longitude()
+        delivery_zones = list(DeliveryZone.objects.filter(restaurant=order.restaurant))
+
+        print(f"[assign_nearest_rider] Restaurant: {order.restaurant.name}")
+        print(f"[assign_nearest_rider] Zones: {len(delivery_zones)}")
+
+        def haversine(lat1, lng1, lat2, lng2):
+            R = 6371
+            d_lat = math.radians(float(lat2) - float(lat1))
+            d_lng = math.radians(float(lng2) - float(lng1))
+            a = (math.sin(d_lat/2)**2 +
+                 math.cos(math.radians(float(lat1))) *
+                 math.cos(math.radians(float(lat2))) *
+                 math.sin(d_lng/2)**2)
+            return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+        def rider_in_zone(rider):
+            r_lat = rider.get_latitude()
+            r_lng = rider.get_longitude()
+            if not r_lat or not r_lng:
+                print(f"  [zone] {rider.email} — no location")
+                return False
+            if not delivery_zones:
+                if not restaurant_lat or not restaurant_lng:
+                    return True
+                dist = haversine(r_lat, r_lng, restaurant_lat, restaurant_lng)
+                result = dist <= 15
+                print(f"  [zone] {rider.email} — {dist:.1f}km from restaurant, allowed: {result}")
+                return result
+            for zone in delivery_zones:
+                if not zone.latitude or not zone.longitude:
+                    continue
+                dist = haversine(r_lat, r_lng, zone.latitude, zone.longitude)
+                print(f"  [zone] {rider.email} — {dist:.1f}km from zone {zone.location_in_string}")
+                if dist <= 15:
+                    return True
+            return False
+
+        zone_riders = [r for r in available_riders if rider_in_zone(r)]
+        print(f"[assign_nearest_rider] Zone riders: {[r.email for r in zone_riders]}")
+
+        if not zone_riders:
+            print(f"[assign_nearest_rider] No zone riders — Order #{order.pk} cannot be assigned")
+            return None
+
+        if not restaurant_lat or not restaurant_lng:
+            order.assign_rider(zone_riders[0])
+            return zone_riders[0]
+
+        best_rider = None
+        best_distance = None
+
+        for rider in zone_riders:
+            r_lat = rider.get_latitude()
+            r_lng = rider.get_longitude()
+            if not r_lat or not r_lng:
+                continue
+            dist = haversine(r_lat, r_lng, restaurant_lat, restaurant_lng)
+            if best_distance is None or dist < best_distance:
+                best_distance = dist
+                best_rider = rider
+
+        if best_rider is None:
+            best_rider = zone_riders[0]
+
+        print(f"[assign_nearest_rider] Assigning {best_rider.email} to Order #{order.pk}")
+        order.assign_rider(best_rider)
+        return best_rider
+
 
 
 class Menu(models.Model):
@@ -414,6 +638,7 @@ class MenuItem(models.Model):
     total_rating = models.IntegerField(default=0)
     total_rating_population = models.IntegerField(default=0)
     average_rating = models.FloatField(default=0)
+    is_available = models.BooleanField(default=True)
 
     class Meta:
         indexes = [
@@ -452,11 +677,46 @@ class MenuItem(models.Model):
             self.average_rating = round(self.total_rating / self.total_rating_population, 1)
         self.save()
 
+class ItemVariant(models.Model):
+    item = models.ForeignKey(MenuItem, on_delete=models.CASCADE, related_name='variants')
+    name = models.CharField(max_length=100)
+    extra_price = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.item.name} - {self.name} (+Rs.{self.extra_price})"
+
+
+class ItemAddon(models.Model):
+    item = models.ForeignKey(MenuItem, on_delete=models.CASCADE, related_name='addons')
+    name = models.CharField(max_length=100)
+    extra_price = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.item.name} - {self.name} (+Rs.{self.extra_price})"
+
+
+class CartItemVariant(models.Model):
+    cart_item = models.OneToOneField('CartItem', on_delete=models.CASCADE, related_name='selected_variant')
+    variant = models.ForeignKey(ItemVariant, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.cart_item} - {self.variant}"
+
+
+class CartItemAddon(models.Model):
+    cart_item = models.ForeignKey('CartItem', on_delete=models.CASCADE, related_name='selected_addons')
+    addon = models.ForeignKey(ItemAddon, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.cart_item} - {self.addon}"
 
 class OrderedItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+    variant_name = models.CharField(max_length=100, blank=True, default='')
+    variant_extra = models.PositiveIntegerField(default=0)
+    addon_summary = models.CharField(max_length=500, blank=True, default='')
 
     class Meta:
         indexes = [
@@ -561,19 +821,38 @@ class Cart(models.Model):
         indexes = [
             models.Index(fields=['user', 'restaurant'])
         ]
+        unique_together = ('user', 'restaurant')
+
 
     def get_cart_total(self):
         cart_items = CartItem.objects.filter(cart=self)
 
+
         total = 0
+
 
         for cart_item in cart_items:
             total += cart_item.get_item_total()
 
+
         return total
+
+
+    def meets_minimum_order(self):
+        minimum = self.restaurant.minimum_order_amount
+        if minimum == 0:
+            return True
+        return self.get_cart_total() >= minimum
+
+
+    def minimum_order_remaining(self):
+        remaining = self.restaurant.minimum_order_amount - self.get_cart_total()
+        return max(0, remaining)
+
 
     def __str__(self):
         return self.user.email + ' ' + self.payment_type + ' ' + str(self.get_cart_total())
+
 
 
 class CartItem(models.Model):
@@ -581,26 +860,49 @@ class CartItem(models.Model):
     item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
 
+
     def increment(self):
         self.quantity += 1
         self.save()
         return self.quantity
 
+
     def decrement(self):
-        self.quantity -= 1
-        self.save()
-
-        if self.quantity == 0:
+        if self.quantity > 1:
+            self.quantity -= 1
+            self.save()
+        else:
             self.delete()
-            return None
-
-        return self.quantity
-
+    
     def get_item_total(self):
-        return self.quantity * self.item.price
+        base = self.item.price
+        try:
+            variant_extra = self.selected_variant.variant.extra_price if self.selected_variant.variant else 0
+        except CartItemVariant.DoesNotExist:
+            variant_extra = 0
+        addon_extra = sum(ca.addon.extra_price for ca in self.selected_addons.all())
+        return self.quantity * (base + variant_extra + addon_extra)
+
 
     def add_to_order(self, order):
-        OrderedItem.objects.create(order=order, item=self.item, quantity=self.quantity)
+        ordered_item = OrderedItem.objects.create(
+            order=order,
+            item=self.item,
+            quantity=self.quantity,
+        )
+        # Preserve variant name on the ordered item if selected
+        try:
+            if self.selected_variant and self.selected_variant.variant:
+                ordered_item.variant_name = self.selected_variant.variant.name
+                ordered_item.variant_extra = self.selected_variant.variant.extra_price
+        except CartItemVariant.DoesNotExist:
+            pass
+        # Preserve addon names
+        addon_names = []
+        for ca in self.selected_addons.all():
+            addon_names.append(f"{ca.addon.name} (+Rs.{ca.addon.extra_price})")
+        ordered_item.addon_summary = ', '.join(addon_names)
+        ordered_item.save()
         self.delete()
 
     class Meta:

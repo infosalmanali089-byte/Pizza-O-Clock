@@ -1,24 +1,14 @@
-<span>Rating:
+<span style="display: inline-flex; align-items: center; gap: 0.3rem;">
     {% if rating == 0 %}
-        Unrated
-    {% endif %}
-    {% if rating > 0 %}
-        <i class="fa fa-star text-warning" aria-hidden="true"></i>
-    {% endif %}
-
-    {% if rating > 1 %}
-        <i class="fa fa-star text-warning" aria-hidden="true"></i>
-    {% endif %}
-
-    {% if rating > 2 %}
-        <i class="fa fa-star text-warning" aria-hidden="true"></i>
-    {% endif %}
-
-    {% if rating > 3 %}
-        <i class="fa fa-star text-warning" aria-hidden="true"></i>
-    {% endif %}
-
-    {% if rating > 4 %}
-        <i class="fa fa-star text-warning" aria-hidden="true"></i>
+        <span style="color: #a8a29e; font-size: 0.85rem;">Unrated</span>
+    {% else %}
+        {% for i in "12345" %}
+            {% if forloop.counter <= rating %}
+                <i class="fa fa-star" style="color: #f59e0b;" aria-hidden="true"></i>
+            {% else %}
+                <i class="fa fa-star" style="color: #3d3836;" aria-hidden="true"></i>
+            {% endif %}
+        {% endfor %}
+        <span style="color: #a8a29e; font-size: 0.85rem;">({{ rating }}/5)</span>
     {% endif %}
 </span>

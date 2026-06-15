@@ -1,215 +1,881 @@
-{% extends 'base.html' %}
-
 {% load static %}
-
-{% block title %}
-    Edit Profile
-{% endblock %}
-
-{% block styles %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="{% static 'icons/favicon512x512.png' %}">
+    <title>Edit Profile — Pizza'O Clock</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <style>
+        *, ::after, ::before { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --amber: #f59e0b;
+            --amber-light: #fef3c7;
+            --amber-dark: #d97706;
+            --dark: #1c1917;
+            --mid: #57534e;
+            --muted: #a8a29e;
+            --light: #fafaf9;
+        }
+
         body {
-            background-color: #f2f6fc;
-            color: #69707a;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
         }
 
-        .img-account-profile {
-            height: 10rem;
-        }
-        
-        .card {
-            box-shadow: 0 0.15rem 1.75rem 0 rgb(33 40 50 / 15%);
+        /* ── TOPBAR ── */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid #f0efee;
+            padding: 0 2rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
         }
 
-        .card .card-header {
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .brand-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--amber);
+        }
+
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            color: var(--dark);
+        }
+
+        .topbar-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
             font-weight: 500;
+            color: var(--mid);
+            text-decoration: none;
+            padding: 0.45rem 1rem;
+            border: 1.5px solid #e7e5e4;
+            border-radius: 50px;
+            transition: all 0.2s;
         }
 
-        .card-header:first-child {
-            border-radius: 0.35rem 0.35rem 0 0;
+        .topbar-back:hover {
+            border-color: var(--amber);
+            color: var(--amber-dark);
+            background: var(--amber-light);
         }
 
-        .card-header {
-            padding: 1rem 1.35rem;
-            margin-bottom: 0;
-            background-color: rgba(33, 40, 50, 0.03);
-            border-bottom: 1px solid rgba(33, 40, 50, 0.125);
+        /* ── HERO STRIP ── */
+        .hero-strip {
+            background: var(--dark);
+            padding: 3rem 2rem 2.5rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .form-control, .dataTable-input {
-            display: block;
+        .hero-strip::before {
+            content: '';
+            position: absolute;
+            top: -80px; right: -80px;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.1);
+        }
+
+        .hero-strip::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; left: 30%;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.06);
+        }
+
+        .hero-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .hero-avatar {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 3px solid rgba(245,158,11,0.5);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .hero-text {}
+
+        .hero-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin-bottom: 0.3rem;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            color: white;
+            line-height: 1.2;
+        }
+
+        .hero-title em { color: var(--amber); font-style: italic; }
+
+        .hero-sub {
+            color: var(--muted);
+            font-size: 0.88rem;
+            margin-top: 0.3rem;
+        }
+
+        /* ── MAIN ── */
+        .main-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 5rem;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 1.75rem;
+            align-items: start;
+        }
+
+        /* ── CARDS ── */
+        .poc-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .poc-card-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f0efee;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .poc-card-header-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--amber);
+        }
+
+        .poc-card-body { padding: 1.75rem 1.5rem; }
+
+        /* ── AVATAR CARD ── */
+        .avatar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.1rem;
+        }
+
+        .avatar-ring {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+            box-shadow: 0 8px 24px rgba(245,158,11,0.25);
+        }
+
+        .avatar-ring img {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+        }
+
+        .avatar-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.05rem;
+            color: var(--dark);
+            text-align: center;
+        }
+
+        .avatar-email {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-align: center;
+            margin-top: -0.6rem;
+        }
+
+        .file-drop {
             width: 100%;
-            padding: 0.875rem 1.125rem;
-            font-size: 0.875rem;
-            font-weight: 400;
-            line-height: 1;
-            color: #69707a;
-            background-color: #fff;
-            background-clip: padding-box;
-            border: 1px solid #c5ccd6;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            border-radius: 0.35rem;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            border: 1.5px dashed #e7e5e4;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            background: var(--light);
+            transition: all 0.2s;
+            cursor: pointer;
         }
 
-        .nav-borders .nav-link.active {
-            color: #0061f2;
-            border-bottom-color: #0061f2;
+        .file-drop:hover {
+            border-color: var(--amber);
+            background: var(--amber-light);
         }
 
-        .nav-borders .nav-link {
-            color: #69707a;
-            border-bottom-width: 0.125rem;
-            border-bottom-style: solid;
-            border-bottom-color: transparent;
-            padding: 0.5rem 0;
-            margin-left: 1rem;
-            margin-right: 1rem;
+        .file-drop input[type="file"] {
+            width: 100%;
+            font-size: 0.8rem;
+            color: var(--mid);
+            cursor: pointer;
         }
 
-        #map {
-            height: 180px;
-            margin: 0.5rem
+        .file-drop-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.3rem;
+        }
+
+        /* ── FORM FIELDS ── */
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .field-row.single {
+            grid-template-columns: 1fr;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .field-group label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--mid);
+            letter-spacing: 0.03em;
+        }
+
+        .field-group input {
+            padding: 0.82rem 1rem;
+            border: 1.5px solid #e7e5e4;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
+            color: var(--dark);
+            background: var(--light);
+            outline: none;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .field-group input:focus {
+            border-color: var(--amber);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+        }
+
+        .field-group input::placeholder { color: #c4bfbb; }
+
+        /* ── LOCATION BOX ── */
+        .location-box {
+            background: var(--light);
+            border: 1.5px solid #e7e5e4;
+            border-radius: 16px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .loc-row {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .loc-input-wrap {
+            flex: 1;
+            min-width: 160px;
+            position: relative;
+        }
+
+        .loc-input-wrap svg.loc-icon {
+            position: absolute;
+            left: 10px; top: 50%;
+            transform: translateY(-50%);
+            width: 15px; height: 15px;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .loc-input-wrap input {
+            width: 100%;
+            padding: 0.78rem 0.9rem 0.78rem 2.1rem;
+            border: 1.5px solid #e7e5e4;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            color: var(--dark);
+            background: white;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .loc-input-wrap input:focus {
+            border-color: var(--amber);
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+        }
+
+        .loc-input-wrap input::placeholder { color: #c4bfbb; }
+
+        .loc-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.78rem 1rem;
+            border: 1.5px solid #e7e5e4;
+            border-radius: 10px;
+            background: white;
+            color: var(--mid);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .loc-btn:hover {
+            border-color: var(--amber);
+            color: var(--amber-dark);
+            background: var(--amber-light);
+        }
+
+        .loc-btn svg { width: 14px; height: 14px; }
+        .loc-btn.loading { opacity: 0.6; pointer-events: none; }
+
+        .loc-search-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.78rem 1.1rem;
+            background: var(--amber);
+            color: var(--dark);
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .loc-search-btn:hover { background: var(--amber-dark); }
+        .loc-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loc-search-btn svg { width: 14px; height: 14px; }
+
+        .loc-status {
+            font-size: 0.78rem;
+            min-height: 1rem;
+            padding: 0 0.2rem;
+            transition: all 0.3s;
+        }
+
+        .loc-status.success { color: #10b981; }
+        .loc-status.error   { color: #ef4444; }
+        .loc-status.info    { color: var(--muted); }
+
+        .map-wrap {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1.5px solid #e7e5e4;
+        }
+
+        #map { height: 220px; width: 100%; }
+
+        .map-hint {
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* ── BUTTONS ── */
+        .btn-amber {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.85rem 1.75rem;
+            background: var(--amber);
+            color: var(--dark);
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-amber:hover {
+            background: var(--amber-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(217,119,6,0.3);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.85rem 1.75rem;
+            background: white;
+            color: var(--mid);
+            border: 1.5px solid #e7e5e4;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--amber);
+            color: var(--amber-dark);
+            background: var(--amber-light);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.75rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #f0efee;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 900px) {
+            .profile-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .field-row { grid-template-columns: 1fr; }
+            .main-wrap { padding: 1.5rem 1rem 3rem; }
+            .loc-row { flex-direction: column; }
+            .loc-btn, .loc-search-btn { width: 100%; justify-content: center; }
+            .hero-strip { padding: 2rem 1.25rem; }
+            .topbar { padding: 0 1.25rem; }
         }
     </style>
-{% endblock %}
+</head>
+<body>
 
-{% block content %}
+<!-- ── TOPBAR ── -->
+<nav class="topbar">
+    <a href="{% url 'landingapp:landing_page' %}" class="topbar-brand">
+        <div class="brand-dot"></div>
+        <span class="brand-name">Pizza'O Clock</span>
+    </a>
+    <a href="{% url 'landingapp:landing_page' %}" class="topbar-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back to Home
+    </a>
+</nav>
 
-    <div class="container-xl px-4 mt-4">
+<!-- ── HERO STRIP ── -->
+<div class="hero-strip">
+    <div class="hero-inner">
+        {% if user.profile_picture %}
+            <img class="hero-avatar" src="{{ user.profile_picture.url }}" alt="Profile">
+        {% else %}
+            <img class="hero-avatar" src="http://bootdey.com/img/Content/avatar/avatar1.png" alt="Profile">
+        {% endif %}
+        <div class="hero-text">
+            <div class="hero-label">Account Settings</div>
+            <div class="hero-title">{{ user.first_name }} <em>{{ user.last_name }}</em></div>
+            <div class="hero-sub">{{ user.email }}</div>
+        </div>
+    </div>
+</div>
 
-        <div class="row">
-            <div class="col-xl-4">
-                <form method="POST" action="{% url 'user:upload_profile' %}" enctype="multipart/form-data" class="card mb-4 mb-xl-0">
-                    {% csrf_token %}
-                    <div class="card-header">Profile Picture</div>
-                    <div class="card-body text-center">
-                        {% if user.profile_picture %}
-                            <img class="img-account-profile rounded-circle mb-2"
-                                 src="{{ user.profile_picture.url }}" alt="">
-                        {% else %}
-                            <img class="img-account-profile rounded-circle mb-2"
-                                 src="http://bootdey.com/img/Content/avatar/avatar1.png" alt="">
-                        {% endif %}
-                        <div class="d-flex m-4 border">
-                            <input name="image" type="file" class="w-100">
-                        </div>
-                        <button class="btn btn-primary" type="submit">Upload new image</button>
+<!-- ── MAIN ── -->
+<div class="main-wrap">
+    <div class="profile-grid">
+
+        <!-- Left: Avatar Card -->
+        <div>
+            <form method="POST" action="{% url 'user:upload_profile' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="poc-card">
+                    <div class="poc-card-header">
+                        <div class="poc-card-header-dot"></div>
+                        Profile Picture
                     </div>
-                </form>
-            </div>
+                    <div class="poc-card-body">
+                        <div class="avatar-wrap">
+                            <div class="avatar-ring">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile">
+                                {% else %}
+                                    <img src="http://bootdey.com/img/Content/avatar/avatar1.png" alt="Profile">
+                                {% endif %}
+                            </div>
+                            <div>
+                                <div class="avatar-name">{{ user.first_name }} {{ user.last_name }}</div>
+                                <div class="avatar-email">{{ user.email }}</div>
+                            </div>
+                            <div class="file-drop">
+                                <input type="file" name="image" accept="image/*">
+                                <div class="file-drop-label">JPG, PNG or WEBP — max 5MB</div>
+                            </div>
+                            <button type="submit" class="btn-amber" style="width:100%; justify-content:center;">
+                                Upload Photo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
 
-            <div class="col-xl-8">
-                <div class="card mb-4">
+        <!-- Right: Details Card -->
+        <div>
+            <div class="poc-card">
+                <div class="poc-card-header">
+                    <div class="poc-card-header-dot"></div>
+                    Personal Information
+                </div>
+                <div class="poc-card-body">
+                    <form method="POST">
+                        {% csrf_token %}
 
-                    <div class="card-header">User Details</div>
-                    <div class="card-body">
-                        <form method="POST">
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label>First Name</label>
+                                <input type="text" name="first_name"
+                                       placeholder="First name"
+                                       value="{{ user.first_name }}" required>
+                            </div>
+                            <div class="field-group">
+                                <label>Last Name</label>
+                                <input type="text" name="last_name"
+                                       placeholder="Last name"
+                                       value="{{ user.last_name }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field-row single">
+                            <div class="field-group">
+                                <label>Email Address</label>
+                                <input type="email" name="email"
+                                       placeholder="you@example.com"
+                                       value="{{ user.email }}" required>
+                            </div>
+                        </div>
+
+                        <div class="field-row single">
+                            <div class="field-group">
+                                <label>Phone Number</label>
+                                <input type="number" name="phone"
+                                       placeholder="03xxxxxxxxx"
+                                       min="1000000000" max="99999999999"
+                                       value="{{ user.phone }}" required>
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="field-row single">
+                            <div class="field-group">
+                                <label>Delivery Location</label>
+
+                                <input type="hidden" name="latitude"  id="lat-input"  value="{{ user.get_latitude }}">
+                                <input type="hidden" name="longitude" id="lng-input"  value="{{ user.get_longitude }}">
+
+                                <div class="location-box">
+
+                                    <div class="loc-row">
+                                        <div class="loc-input-wrap">
+                                            <svg class="loc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                                            </svg>
+                                            <input type="text" id="location-input"
+                                                   placeholder="Type city or address…"
+                                                   autocomplete="off">
+                                        </div>
+
+                                        <button type="button" class="loc-btn" id="use-location-btn">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+                                                <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+                                                <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+                                            </svg>
+                                            Use GPS
+                                        </button>
+
+                                        <button type="button" class="loc-search-btn" id="search-btn" disabled>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                            </svg>
+                                            Search
+                                        </button>
+                                    </div>
+
+                                    <div class="loc-status info" id="loc-status"></div>
+
+                                    <div class="map-wrap">
+                                        <div id="map"></div>
+                                    </div>
+
+                                    <div class="map-hint">
+                                        📍 Or click anywhere on the map to pin your location
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                       <div class="form-actions">
+                            <button type="submit" class="btn-amber">Save Changes</button>
+                            <a href="{% url 'landingapp:landing_page' %}" class="btn-outline">Cancel</a>
+                        </div>
+                    </form>
+
+                    <!-- Delete Account -->
+                    <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid #f0efee;">
+                        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem;">
+                            Deleting your account is permanent and cannot be undone.
+                        </p>
+                        <form method="POST" action="{% url 'user:delete_account' %}"
+                              onsubmit="return confirm('Are you sure? This cannot be undone.')">
                             {% csrf_token %}
-
-                            <div class="row gx-3 mb-3">
-                                <div class="col-md-6">
-                                    <label class="small mb-1" for="inputFirstName">First name</label>
-                                    <input required name="first_name" class="form-control" id="inputFirstName"
-                                           type="text"
-                                           placeholder="Enter your first name" value="{{ user.first_name }}">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="small mb-1" for="inputLastName">Last name</label>
-                                    <input required name="last_name" class="form-control" id="inputLastName" type="text"
-                                           placeholder="Enter your last name" value="{{ user.last_name }}">
-                                </div>
-                            </div>
-                            <div class="row gx-3 mb-3">
-
-                                <div class="col-md-6">
-                                    <label class="small mb-1" for="inputLocation">Location</label>
-                                    <input type="hidden" name="latitude" value="{{ user.get_latitude }}">
-                                    <input type="hidden" name="longitude" value="{{ user.get_longitude }}">
-
-                                    <input required readonly name="location" class="form-control" id="inputLocation"
-                                           type="text"
-                                           value="{{ user.get_location }}">
-                                    <div id="map"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="small mb-1" for="inputEmailAddress">Email address</label>
-                                <input required name="email" class="form-control" id="inputEmailAddress" type="email"
-                                       placeholder="Enter your email address" value="{{ user.email }}">
-                            </div>
-                            <div class="row gx-3 mb-3">
-                                <div class="col-md-6">
-                                    <label class="small mb-1" for="inputPhone">Phone number</label>
-                                    <input min="1000000000" max="99999999999" required name="phone" class="form-control"
-                                           id="inputPhone" type="number"
-                                           placeholder="Enter your phone number" value="{{ user.phone }}">
-                                </div>
-                            </div>
-                            <button class="btn btn-warning" type="submit">Save changes</button>
+                            <button type="submit"
+                                style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.75rem 1.5rem;
+                                       background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;
+                                       border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;
+                                       font-weight:600;cursor:pointer;transition:all 0.2s;">
+                                🗑 Delete My Account
+                            </button>
                         </form>
                     </div>
+
                 </div>
             </div>
         </div>
+
     </div>
+</div>
 
-    <script>
-        const map = L.map('map', {
-            {% if user.get_location != '' %}
-                center: [{{ user.get_latitude }}, {{ user.get_longitude }}],
-            {% else %}
-                center: [31.5204, 74.3587],
-            {% endif %}
-            zoom: 13
-        });
+<script>
+    // ── Map setup
+    const initialLat = "{{ user.get_latitude }}";
+    const initialLng = "{{ user.get_longitude }}";
+    const initialLoc = "{{ user.get_location }}";
 
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+    const map = L.map('map', {
+        center: (initialLat && initialLng) ? [parseFloat(initialLat), parseFloat(initialLng)] : [31.5204, 74.3587],
+        zoom: 13
+    });
 
-        let marker;
-        {% if user.get_latitude != '' and user.get_longitude != '' %}
-            marker = L.marker([
-                {{ user.get_latitude }},
-                {{ user.get_longitude }},
-            ]).addTo(map);
-        {% endif %}
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
 
-        let latlng;
-        map.on('click', function (e) {
-            if (marker)
-                map.removeLayer(marker);
-            console.log(e.latlng); // e is an event object (MouseEvent in this case)
-            latlng = e.latlng
-            marker = L.marker(e.latlng).addTo(map);
+    let marker;
+    if (initialLat && initialLng) {
+        marker = L.marker([parseFloat(initialLat), parseFloat(initialLng)]).addTo(map);
+    }
 
-            document.querySelector('input[name="latitude"]').value = e.latlng.lat
-            document.querySelector('input[name="longitude"]').value = e.latlng.lng
+    // ── Elements
+    const latInput      = document.getElementById('lat-input');
+    const lngInput      = document.getElementById('lng-input');
+    const locationInput = document.getElementById('location-input');
+    const statusEl      = document.getElementById('loc-status');
+    const useLocBtn     = document.getElementById('use-location-btn');
+    const searchBtn     = document.getElementById('search-btn');
 
+    // pre-fill location text
+    if (initialLoc) locationInput.value = initialLoc;
 
-            fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${latlng.lat}&lon=${latlng.lng}&apiKey=c9743ce533884c64a9f4b465359d181f`)
-                .then(response => response.json())
-                .then(result => {
-                    const location_string = result.features[0].properties.formatted
-                    const location_input_element = document.getElementById('inputLocation')
+    function setStatus(msg, type = 'info') {
+        statusEl.textContent = msg;
+        statusEl.className = 'loc-status ' + type;
+    }
 
-                    location_input_element.value = location_string
-                })
-                .catch(error => console.log('error', error));
-        });
+    function placeMarker(lat, lng) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(map);
+        map.setView([lat, lng], 14);
+        latInput.value = lat;
+        lngInput.value = lng;
+    }
 
-    </script>
-{% endblock %}
+    function reverseGeocode(lat, lng) {
+        fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=c9743ce533884c64a9f4b465359d181f`)
+            .then(r => r.json())
+            .then(data => {
+                const addr = data.features[0].properties.formatted;
+                locationInput.value = addr;
+                setStatus('📍 Location set: ' + addr.split(',').slice(0,2).join(','), 'success');
+            })
+            .catch(() => setStatus('Could not resolve address.', 'error'));
+    }
 
+    // ── Map click
+    map.on('click', function(e) {
+        placeMarker(e.latlng.lat, e.latlng.lng);
+        setStatus('Resolving address…', 'info');
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
 
+    // Enter key triggers search
+    locationInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!searchBtn.disabled) searchBtn.click();
+        }
+    });
 
+    // ── Type to enable search
+    locationInput.addEventListener('input', () => {
+        latInput.value = '';
+        lngInput.value = '';
+        searchBtn.disabled = locationInput.value.trim() === '';
+        if (locationInput.value.trim()) {
+            setStatus('Press Search to find this location.', 'info');
+        } else {
+            setStatus('', 'info');
+        }
+    });
+
+    // ── Search by city name (Nominatim)
+    searchBtn.addEventListener('click', async () => {
+        const city = locationInput.value.trim();
+        if (!city) return;
+
+        setStatus('🔍 Searching for ' + city + '…', 'info');
+        searchBtn.disabled = true;
+        searchBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 style="width:14px;height:14px;animation:spin 1s linear infinite">
+                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.09-7.18"/>
+            </svg> Searching…`;
+
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1&countrycodes=pk`;
+            const res  = await fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'PizzaOClock/1.0' } });
+            const data = await res.json();
+
+            if (!data || data.length === 0) {
+                setStatus('❌ Location not found. Try a different name.', 'error');
+            } else {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                placeMarker(lat, lng);
+                setStatus('📍 Found: ' + data[0].display_name.split(',').slice(0,2).join(','), 'success');
+            }
+        } catch {
+            setStatus('❌ Search failed. Check your connection.', 'error');
+        }
+
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg> Search`;
+    });
+
+    // ── GPS
+    useLocBtn.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            setStatus('Geolocation not supported by your browser.', 'error');
+            return;
+        }
+
+        useLocBtn.classList.add('loading');
+        useLocBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 style="width:14px;height:14px;animation:spin 1s linear infinite">
+                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.09-7.18"/>
+            </svg> Detecting…`;
+        setStatus('Requesting your GPS location…', 'info');
+
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                placeMarker(lat, lng);
+                setStatus('Resolving address…', 'info');
+                reverseGeocode(lat, lng);
+                restoreGpsBtn();
+            },
+            err => {
+                const msgs = {
+                    1: 'Location access denied.',
+                    2: 'Could not detect location.',
+                    3: 'Location request timed out.',
+                };
+                setStatus(msgs[err.code] || 'Location error.', 'error');
+                restoreGpsBtn();
+            },
+            { timeout: 10000, maximumAge: 60000 }
+        );
+    });
+
+    function restoreGpsBtn() {
+        useLocBtn.classList.remove('loading');
+        useLocBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+                <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+            </svg> Use GPS`;
+    }
+</script>
+
+</body>
+</html>

@@ -1,401 +1,1336 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
-{% block title %}Add Restaurant Info {% endblock %}
+{% block title %}Edit Restaurant — {{ name }}{% endblock %}
 
 {% block styles %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <style>
-        body {
-            color: #9b9ca1;
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap');
+
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+    }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--light);
+        margin: 0;
+    }
+
+    /* ── HERO STRIP ── */
+    .hero-strip {
+        background: var(--dark);
+        padding: 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-strip::before {
+        content: '';
+        position: absolute;
+        top: -80px;
+        right: -80px;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: rgba(245, 158, 11, 0.1);
+        pointer-events: none;
+    }
+
+    .hero-strip::after {
+        content: '';
+        position: absolute;
+        bottom: -60px;
+        left: 30%;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: rgba(245, 158, 11, 0.06);
+        pointer-events: none;
+    }
+
+    .hero-inner {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--amber);
+        margin-bottom: 0.4rem;
+    }
+
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.4rem, 3vw, 2rem);
+        color: white;
+        line-height: 1.2;
+    }
+
+    .hero-title em {
+        color: var(--amber);
+        font-style: italic;
+    }
+
+    .hero-sub {
+        color: var(--muted);
+        font-size: 0.88rem;
+        margin-top: 0.4rem;
+    }
+
+    /* Publish badge */
+    .publish-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.9rem;
+        border-radius: 50px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+
+    .publish-badge.published {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .publish-badge.unpublished {
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .publish-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .published .publish-badge-dot {
+        background: #10b981;
+    }
+
+    .unpublished .publish-badge-dot {
+        background: #ef4444;
+    }
+
+    /* ── MAIN ── */
+    .main-wrap {
+        max-width: 900px;
+        margin: 2.5rem auto 5rem;
+        padding: 0 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+    }
+
+    /* ── CARD ── */
+    .poc-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
+
+    .poc-card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0efee;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .poc-card-header-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--amber);
+    }
+
+    .poc-card-body {
+        padding: 1.75rem 1.5rem;
+    }
+
+    /* ── FIELD ── */
+    .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .field-row.single {
+        grid-template-columns: 1fr;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.38rem;
+    }
+
+    .field-group label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--mid);
+        letter-spacing: 0.03em;
+    }
+
+    .field-wrap {
+        position: relative;
+    }
+
+    .field-wrap svg.field-icon {
+        position: absolute;
+        left: 0.9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 15px;
+        height: 15px;
+        color: var(--muted);
+        pointer-events: none;
+    }
+
+    .field-wrap input[type="text"],
+    .field-wrap input[type="number"],
+    .field-wrap input[type="time"] {
+        width: 100%;
+        padding: 0.82rem 1rem 0.82rem 2.5rem;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.92rem;
+        color: var(--dark);
+        background: var(--light);
+        outline: none;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .field-wrap input:focus {
+        border-color: var(--amber);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+    }
+
+    .field-wrap input::placeholder {
+        color: #c4bfbb;
+    }
+
+    /* File drop */
+    .file-drop {
+        border: 1.5px dashed var(--border);
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        background: var(--light);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .file-drop:hover {
+        border-color: var(--amber);
+        background: var(--amber-light);
+    }
+
+    .file-drop svg {
+        width: 15px;
+        height: 15px;
+        color: var(--muted);
+        flex-shrink: 0;
+    }
+
+    .file-drop input[type="file"] {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem;
+        color: var(--mid);
+        border: none;
+        background: transparent;
+        outline: none;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    /* Restaurant image preview */
+    .restaurant-img-preview {
+        width: 100%;
+        max-height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1.5px solid var(--border);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Toggle switch */
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        background: var(--light);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 0.9rem 1.1rem;
+    }
+
+    .toggle-label-title {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .toggle-label-sub {
+        font-size: 0.73rem;
+        color: var(--muted);
+        margin-top: 0.15rem;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 46px;
+        height: 26px;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: #e7e5e4;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .toggle-slider::before {
+        content: '';
+        position: absolute;
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch input:checked+.toggle-slider {
+        background: #10b981;
+    }
+
+    .toggle-switch input:checked+.toggle-slider::before {
+        transform: translateX(20px);
+    }
+
+    /* ── LOCATION BOX ── */
+    .location-box {
+        background: var(--light);
+        border: 1.5px solid var(--border);
+        border-radius: 16px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .loc-row {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .loc-input-wrap {
+        flex: 1;
+        min-width: 160px;
+        position: relative;
+    }
+
+    .loc-input-wrap svg.loc-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 15px;
+        height: 15px;
+        color: var(--muted);
+        pointer-events: none;
+    }
+
+    .loc-input-wrap input {
+        width: 100%;
+        padding: 0.78rem 0.9rem 0.78rem 2.1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem;
+        color: var(--dark);
+        background: white;
+        outline: none;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .loc-input-wrap input:focus {
+        border-color: var(--amber);
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+    }
+
+    .loc-input-wrap input::placeholder {
+        color: #c4bfbb;
+    }
+
+    .loc-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.78rem 1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        background: white;
+        color: var(--mid);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .loc-btn:hover {
+        border-color: var(--amber);
+        color: var(--amber-dark);
+        background: var(--amber-light);
+    }
+
+    .loc-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .loc-btn.loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .loc-search-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.78rem 1.1rem;
+        background: var(--amber);
+        color: var(--dark);
+        border: none;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .loc-search-btn:hover {
+        background: var(--amber-dark);
+    }
+
+    .loc-search-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .loc-search-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .loc-status {
+        font-size: 0.78rem;
+        min-height: 1rem;
+        padding: 0 0.2rem;
+        transition: all 0.3s;
+    }
+
+    .loc-status.success {
+        color: #10b981;
+    }
+
+    .loc-status.error {
+        color: #ef4444;
+    }
+
+    .loc-status.info {
+        color: var(--muted);
+    }
+
+    .map-wrap {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1.5px solid var(--border);
+    }
+
+    .map-wrap div {
+        height: 220px;
+        width: 100%;
+    }
+
+    .map-hint {
+        font-size: 0.75rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    /* ── DELIVERY ZONES ── */
+    .zone-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .zone-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--light);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+    }
+
+    .zone-item-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .zone-item-icon svg {
+        width: 14px;
+        height: 14px;
+        color: #10b981;
+    }
+
+    .zone-item-name {
+        flex: 1;
+        font-size: 0.9rem;
+        color: var(--dark);
+        font-weight: 500;
+    }
+
+    .zone-delete-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.45rem 0.85rem;
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1.5px solid #fecaca;
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .zone-delete-btn:hover {
+        background: #fee2e2;
+        border-color: #f87171;
+    }
+
+    .zone-delete-btn svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    /* ── BUTTONS ── */
+    .btn-amber {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.82rem 1.75rem;
+        background: var(--amber);
+        color: var(--dark);
+        border: none;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-amber:hover {
+        background: var(--amber-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(217, 119, 6, 0.3);
+    }
+
+    .btn-amber:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 1.25rem;
+        border-top: 1px solid #f0efee;
+        margin-top: 0.5rem;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @media (max-width: 700px) {
+        .main-wrap {
+            padding: 0 1rem;
+            margin-top: 1.5rem;
         }
 
-        .bg-secondary-soft {
-            background-color: rgba(208, 212, 217, 0.1) !important;
+        .hero-strip {
+            padding: 2rem 1.25rem;
         }
 
-        .rounded {
-            border-radius: 5px !important;
+        .field-row {
+            grid-template-columns: 1fr;
         }
 
-        .py-5 {
-            padding-top: 3rem !important;
-            padding-bottom: 3rem !important;
+        .loc-row {
+            flex-direction: column;
         }
 
-        .px-4 {
-            padding-right: 1.5rem !important;
-            padding-left: 1.5rem !important;
-        }
-
-        .file-upload .square {
-            height: 250px;
-            width: 250px;
-            margin: auto;
-            vertical-align: middle;
-            border: 1px solid #e5dfe4;
-            background-color: #fff;
-            border-radius: 5px;
-        }
-
-        .text-secondary {
-            --bs-text-opacity: 1;
-            color: rgba(208, 212, 217, 0.5) !important;
-        }
-
-        .btn-success-soft {
-            color: #28a745;
-            background-color: rgba(40, 167, 69, 0.1);
-        }
-
-        .btn-danger-soft {
-            color: #dc3545;
-            background-color: rgba(220, 53, 69, 0.1);
-        }
-
-        .form-control {
-            display: block;
+        .loc-btn,
+        .loc-search-btn {
             width: 100%;
-            padding: 0.5rem 1rem;
-            font-size: 0.9375rem;
-            font-weight: 400;
-            line-height: 1.6;
-            color: #29292e;
-            background-color: #fff;
-            background-clip: padding-box;
-            border: 1px solid #e5dfe4;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            border-radius: 5px;
-            -webkit-transition: border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
-            transition: border-color 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
+            justify-content: center;
         }
-
-        .dark {
-            color: #000000;
-        }
-
-        #map, #map2 {
-            height: 250px;
-            margin: 0.5rem;
-        }
-
-
-    </style>
+    }
+</style>
 {% endblock %}
-
 
 {% block content %}
 
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <!-- Page title -->
-                <div class="my-5">
-                    <h3 class="fw-bold dark fs-1">{{ name }}</h3>
-                    <hr>
-                </div>
-
-                {#                <form id="location_form" method="POST" action="{% url 'restaurant:change_restaurant_location' %}">#}
-                {#                    {% csrf_token %}#}
-                {#                    <input type="hidden" name="latitude" value="{{ restaurant.get_latitude }}">#}
-                {#                    <input type="hidden" name="longitude"#}
-                {#                           value="{{ restaurant.get_longitude }}">#}
-                {##}
-                {#                    <input name="location_in_string" class="form-control" id="inputLocation"#}
-                {#                           type="hidden"#}
-                {#                           value="{{ restaurant.get_location }}">#}
-                {##}
-                {#                </form>#}
-
-                <!-- Form START -->
-                <div>
-                    <div class="row mb-5 gx-5">
-                        <!-- Contact detail -->
-                        <form method="POST" enctype="multipart/form-data" class="col-xxl-8 mb-5 mb-xxl-0">
-                            {% csrf_token %}
-                            <div class="bg-secondary-soft px-4 py-5 rounded">
-                                <div class="row g-3">
-                                    <h4 class="mb-4 mt-0 dark fs-2">Restaurant detail</h4>
-                                    {% if image_src %}
-                                        <div class="col-md-12">
-                                            <img width="350px" src="{{ image_src }}" alt="restaurant cover image">
-                                        </div>
-                                    {% endif %}
-                                    <div class="col-md-6">
-                                        <label class="form-label">Name of Restaurant*</label>
-                                        <input required name="name" type="text" class="form-control"
-                                               placeholder="Restaurant Name" aria-label="First name"
-                                               value="{{ name }}">
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Publish Restaurant? </label>
-
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="1"
-                                                   name="is_published"
-                                                   id="flexCheckChecked" {% if restaurant.is_published %}
-                                                   checked{% endif %}>
-                                            <label class="form-check-label fw-bold text-black-50"
-                                                   for="flexCheckChecked">
-                                                Is The Restaurant Shown on Search Results?[also set location]
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Phone number </label>
-                                        <input min="1000000000" max="99999999999" required name="phone" type="number" class="form-control" placeholder=""
-                                               aria-label="Phone number"
-                                               value="{{ phone }}">
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label">Phone number2 </label>
-                                        <input min="1000000000" max="99999999999" name="phone2" type="number" class="form-control" placeholder=""
-                                               aria-label="Phone number"
-                                               value="{{ phone2 }}">
-                                    </div>
-
-
-                                    <div class="col-md-6">
-                                        <label for="opening_time" class="form-label">Opening Time *</label>
-                                        <input required name="opens_at" type="time" class="form-control"
-                                               id="opening_time"
-                                               value="{{ opens_at }}">
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="closing_time" class="form-label">Closing Time *</label>
-                                        <input required name="closes_at" type="time" class="form-control"
-                                               id="closing_time"
-                                               value="{{ closes_at }}">
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label for="restaurant_image" class="form-label">Restaurant Image</label>
-                                        <input {% if not restaurant.restaurant_image %}required{% endif %}
-                                               name="restaurant_image" type="file" class="form-control"
-                                               id="restaurant_image">
-                                    </div>
-
-                                    <div class="col-md-12 d-flex justify-content-end">
-                                        <button type="submit" class="btn btn-warning px-4">Save</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-
-
-                        <div class="col-xxl-8 mb-5 mb-xxl-0">
-                            <div class="bg-secondary-soft px-4 py-5 rounded">
-                                <form id="location_form" method="POST"
-                                      action="{% url 'restaurant:change_restaurant_location' %}" class="row g-3">
-                                    {% csrf_token %}
-
-                                    <h4 class="mb-4 mt-0 dark fs-2">Restaurant Location</h4>
-
-                                    <div class="row gx-3 mb-3">
-
-                                        <div class="col-md-6">
-                                            <input type="hidden" name="latitude" value="{{ restaurant.get_latitude }}">
-                                            <input type="hidden" name="longitude"
-                                                   value="{{ restaurant.get_longitude }}">
-
-                                            <input required readonly name="location_in_string" class="form-control"
-                                                   id="inputLocation"
-                                                   type="text"
-                                                   value="{{ restaurant.get_location }}">
-                                            <div id="map"></div>
-
-                                            <div>
-                                                <button id="btn-location-save" type="button" class="btn btn-success">
-                                                    Save
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-                                </form> <!-- Row END -->
-                            </div>
-                        </div>
-
-
-                        <div class="col-xxl-8 mb-5 mb-xxl-0">
-                            <div class="bg-secondary-soft px-4 py-5 rounded">
-                                <div class="row g-3">
-                                    <h4 class="mb-4 mt-0 dark fs-2">Delivery Zones</h4>
-                                    <ul class="dark ">
-                                        {% for delivery_zone in restaurant.get_delivery_zones %}
-
-                                            <form method="POST" action="{% url 'restaurant:remove_delivery_zone' %}"
-                                                  class="m-2 d-flex gap-4">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="delivery_zone_id"
-                                                       value="{{ delivery_zone.id }}">
-                                                <div class="btn btn-success-soft fs-5 flex-fill">{{ delivery_zone.location_in_string }}</div>
-                                                <button type="submit" class="btn btn-danger-soft p-2 px-4 ">X</button>
-                                            </form>
-                                        {% endfor %}
-
-                                    </ul>
-                                    <form method="POST" action="{% url 'restaurant:add_delivery_zone' %}"
-                                          class="col-md-6">
-                                        {% csrf_token %}
-                                        <label id="editing-location" class="small mb-1">Delivery Zone</label>
-                                        <input type="hidden" name="latitude2" value="">
-                                        <input type="hidden" name="longitude2" value="">
-                                        <input type="hidden" name="location_in_string2" value="">
-                                        <div id="map2"></div>
-
-                                        <button disabled id="delivery-location-save" type="submit"
-                                                class="btn-warning m-3 btn">Add Delivery Zone
-                                        </button>
-                                    </form>
-
-
-                                </div> <!-- Row END -->
-                            </div>
-                        </div>
-
-
-                    </div> <!-- Row END -->
-
-                </div> <!-- Form END -->
+<!-- ── HERO STRIP ── -->
+<div class="hero-strip">
+    <div class="hero-inner">
+        <div>
+            <div class="hero-label">Restaurant Dashboard</div>
+            <div class="hero-title">Managing <em>{{ name|default:"Your Restaurant" }}</em></div>
+            <div class="hero-sub">Update your restaurant details, location, and delivery zones.</div>
+            <div style="margin-top:0.5rem;">
+                {% if restaurant.is_published %}
+                <span class="publish-badge published">
+                    <span class="publish-badge-dot"></span> Live on Search
+                </span>
+                {% else %}
+                <span class="publish-badge unpublished">
+                    <span class="publish-badge-dot"></span> Not Published
+                </span>
+                {% endif %}
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        document.getElementById('btn-location-save').addEventListener('click', () => {
-            document.getElementById('location_form').submit()
-        })
+<!-- ── MAIN ── -->
+<div class="main-wrap">
 
+    <!-- ── RESTAURANT DETAILS CARD ── -->
+    <div class="poc-card">
+        <div class="poc-card-header">
+            <div class="poc-card-header-dot"></div>
+            Restaurant Details
+        </div>
+        <div class="poc-card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
 
-        const map = L.map('map', {
-            {% if restaurant.get_location != '' %}
-                center: [{{ restaurant.get_latitude }}, {{ restaurant.get_longitude }}],
-            {% else %}
-                center: [31.5204, 74.3587],
-            {% endif %}
-            zoom: 13
-        });
-
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-
-        let marker;
-        {% if restaurant.get_latitude and restaurant.get_longitude %}
-            marker = L.marker([
-                {% if restaurant.get_location != '' %}
-                    {{ restaurant.get_latitude }}, {{ restaurant.get_longitude }}
-                {% else %}
-                    31.5204, 74.3587
+                <!-- Restaurant image preview -->
+                {% if image_src %}
+                <div class="field-row single" style="margin-bottom:1.1rem;">
+                    <img class="restaurant-img-preview" src="{{ image_src }}" alt="Restaurant cover">
+                </div>
                 {% endif %}
-            ]).addTo(map);
-        {% endif %}
 
-        let latlng;
-        map.on('click', function (e) {
-            document.getElementById('btn-location-save').setAttribute('disabled', 'true')
+                <!-- Name + Publish -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label>Restaurant Name</label>
+                        <div class="field-wrap">
+                            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                <polyline points="9 22 9 12 15 12 15 22" />
+                            </svg>
+                            <input required type="text" name="name" placeholder="Your restaurant name"
+                                value="{{ name }}">
+                        </div>
+                    </div>
 
-            if (marker)
-                map.removeLayer(marker);
-            console.log(e.latlng); // e is an event object (MouseEvent in this case)
-            latlng = e.latlng
-            marker = L.marker(e.latlng).addTo(map);
+                    <div class="field-group">
+                        <label>Visibility</label>
+                        <div class="toggle-row">
+                            <div>
+                                <div class="toggle-label-title">Publish Restaurant</div>
+                                <div class="toggle-label-sub">Show in customer search results</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="is_published" value="1" {% if restaurant.is_published %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
-            document.querySelector('input[name="latitude"]').value = e.latlng.lat
-            document.querySelector('input[name="longitude"]').value = e.latlng.lng
+                <!-- Phone numbers -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label>Primary Phone</label>
+                        <div class="field-wrap">
+                            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.36a16 16 0 0 0 6.72 6.72l1.42-1.42a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                            </svg>
+                            <input required type="number" name="phone" placeholder="03xxxxxxxxx" min="1000000000"
+                                max="99999999999" value="{{ phone }}">
+                        </div>
+                    </div>
 
+                    <div class="field-group">
+                        <label>Secondary Phone</label>
+                        <div class="field-wrap">
+                            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.36a16 16 0 0 0 6.72 6.72l1.42-1.42a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                            </svg>
+                            <input type="number" name="phone2" placeholder="03xxxxxxxxx (optional)" min="1000000000"
+                                max="99999999999" value="{{ phone2 }}">
+                        </div>
+                    </div>
+                </div>
 
-            fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${latlng.lat}&lon=${latlng.lng}&apiKey=c9743ce533884c64a9f4b465359d181f`)
-                .then(response => response.json())
-                .then(result => {
-                    const location_string = result.features[0].properties.formatted
-                    const location_input_element = document.getElementById('inputLocation')
+                <!-- Hours -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label>Opening Time</label>
+                        <div class="field-wrap">
+                            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            <input required type="time" name="opens_at" value="{{ opens_at }}">
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label>Closing Time</label>
+                        <div class="field-wrap">
+                            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            <input required type="time" name="closes_at" value="{{ closes_at }}">
+                        </div>
+                    </div>
+                </div>
+                <!-- Minimum Order -->
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label>Minimum Order Amount (Rs.)</label>
+                                <div class="field-wrap">
+                                    <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="1" x2="12" y2="23" />
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                    </svg>
+                                    <input type="number" name="minimum_order_amount" placeholder="0 = no minimum"
+                                        min="0" step="50" value="{{ restaurant.minimum_order_amount }}">
+                                </div>
+                                <small style="color:var(--muted);font-size:0.75rem;margin-top:0.3rem;display:block;">
+                                    Set to 0 for no minimum. Customers can't checkout below this amount.
+                                </small>
+                            </div>
+                        </div>
+                <!-- Image upload -->
+                <div class="field-row single" style="margin-bottom:0;">
+                    <div class="field-group">
+                        <label>Restaurant Cover Image</label>
+                        <div class="file-drop">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                            <input {% if not restaurant.restaurant_image %}required{% endif %} type="file"
+                                name="restaurant_image" accept="image/*">
+                        </div>
+                    </div>
+                </div>
 
+               <div class="form-actions">
+                    <button type="submit" class="btn-amber">
+                        Save Details
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
 
-                    location_input_element.value = location_string
-                    document.getElementById('btn-location-save').removeAttribute('disabled')
-                })
-                .catch(error => console.log('error', error));
-        });
+            <!-- Delete Account — outside the main form -->
+            <div style="margin-top:1.5rem;padding:1.5rem;border-top:1px solid #f0efee;">
+                <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem;">
+                    Deleting your account will permanently remove your restaurant and all data.
+                </p>
+                <form method="POST" action="{% url 'restaurant:delete_account' %}"
+                      onsubmit="return confirm('Are you sure? This will delete your restaurant and account permanently.')">
+                    {% csrf_token %}
+                    <button type="submit"
+                        style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.75rem 1.5rem;
+                               background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;
+                               border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;
+                               font-weight:600;cursor:pointer;transition:all 0.2s;">
+                        🗑 Delete Account
+                    </button>
+                </form>
+            </div>
 
-    </script>
+        </div>
+    </div>
 
-    <script>
+    <!-- ── RESTAURANT LOCATION CARD ── -->
+    <div class="poc-card">
+        <div class="poc-card-header">
+            <div class="poc-card-header-dot"></div>
+            Restaurant Location
+        </div>
+        <div class="poc-card-body">
+            <form id="location_form" method="POST" action="{% url 'restaurant:change_restaurant_location' %}">
+                {% csrf_token %}
+                <input type="hidden" name="latitude" id="loc-lat" value="{{ restaurant.get_latitude }}">
+                <input type="hidden" name="longitude" id="loc-lng" value="{{ restaurant.get_longitude }}">
+                <input type="hidden" name="location_in_string" id="loc-str" value="{{ restaurant.get_location }}">
 
-        const map2 = L.map('map2', {
-            {% if restaurant.get_location != '' %}
-                center: [{{ restaurant.get_latitude }}, {{ restaurant.get_longitude }}],
-            {% else %}
-                center: [31.5204, 74.3587],
+                <div class="field-group" style="margin-bottom:1rem;">
+                    <label>Search or pin your restaurant location</label>
+                    <div class="location-box">
+
+                        <!-- Search row -->
+                        <div class="loc-row">
+                            <div class="loc-input-wrap">
+                                <svg class="loc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                    <circle cx="12" cy="10" r="3" />
+                                </svg>
+                                <input type="text" id="loc-input" placeholder="Type city or address…" autocomplete="off"
+                                    value="{{ restaurant.get_location }}">
+                            </div>
+
+                            <button type="button" class="loc-btn" id="loc-gps-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <circle cx="12" cy="12" r="3" />
+                                    <line x1="12" y1="2" x2="12" y2="5" />
+                                    <line x1="12" y1="19" x2="12" y2="22" />
+                                    <line x1="2" y1="12" x2="5" y2="12" />
+                                    <line x1="19" y1="12" x2="22" y2="12" />
+                                </svg>
+                                Use GPS
+                            </button>
+
+                            <button type="button" class="loc-search-btn" id="loc-search-btn" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                                Search
+                            </button>
+                        </div>
+
+                        <div class="loc-status info" id="loc-status"></div>
+
+                        <div class="map-wrap">
+                            <div id="map"></div>
+                        </div>
+
+                        <div class="map-hint">📍 Or click anywhere on the map to pin your location</div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="loc-save-btn" class="btn-amber" disabled>
+                        Save Location
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── DELIVERY ZONES CARD ── -->
+    <div class="poc-card">
+        <div class="poc-card-header">
+            <div class="poc-card-header-dot"></div>
+            Delivery Zones
+        </div>
+        <div class="poc-card-body">
+
+            <!-- Existing zones -->
+            {% if restaurant.get_delivery_zones %}
+            <div class="zone-list">
+                {% for zone in restaurant.get_delivery_zones %}
+                <form method="POST" action="{% url 'restaurant:remove_delivery_zone' %}" style="margin:0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="delivery_zone_id" value="{{ zone.id }}">
+                    <div class="zone-item">
+                        <div class="zone-item-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                        </div>
+                        <div class="zone-item-name">{{ zone.location_in_string }}</div>
+                        <button type="submit" class="zone-delete-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                            </svg>
+                            Remove
+                        </button>
+                    </div>
+                </form>
+                {% endfor %}
+            </div>
             {% endif %}
-            zoom: 13
-        });
 
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map2);
+            <!-- Add zone form -->
+            <form method="POST" action="{% url 'restaurant:add_delivery_zone' %}">
+                {% csrf_token %}
+                <input type="hidden" name="latitude2" id="zone-lat" value="">
+                <input type="hidden" name="longitude2" id="zone-lng" value="">
+                <input type="hidden" name="location_in_string2" id="zone-str" value="">
 
-        let marker2;
-        let latlng2;
-        map2.on('click', function (e) {
-            document.getElementById('delivery-location-save').setAttribute('disabled', 'true')
+                <div class="field-group" style="margin-bottom:1rem;">
+                    <label>Add a new delivery zone</label>
+                    <div class="location-box">
 
-            if (marker2)
-                map2.removeLayer(marker2);
-            console.log(e.latlng); // e is an event object (MouseEvent in this case)
-            latlng2 = e.latlng
-            marker2 = L.marker(e.latlng).addTo(map2);
+                        <div class="loc-row">
+                            <div class="loc-input-wrap">
+                                <svg class="loc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                    <circle cx="12" cy="10" r="3" />
+                                </svg>
+                                <input type="text" id="zone-input" placeholder="Type city or area name…"
+                                    autocomplete="off">
+                            </div>
 
-            document.querySelector('input[name="latitude2"]').value = e.latlng.lat
-            document.querySelector('input[name="longitude2"]').value = e.latlng.lng
+                            <button type="button" class="loc-btn" id="zone-gps-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <circle cx="12" cy="12" r="3" />
+                                    <line x1="12" y1="2" x2="12" y2="5" />
+                                    <line x1="12" y1="19" x2="12" y2="22" />
+                                    <line x1="2" y1="12" x2="5" y2="12" />
+                                    <line x1="19" y1="12" x2="22" y2="12" />
+                                </svg>
+                                Use GPS
+                            </button>
+
+                            <button type="button" class="loc-search-btn" id="zone-search-btn" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                                Search
+                            </button>
+                        </div>
+
+                        <div class="loc-status info" id="zone-status"></div>
+
+                        <div class="map-wrap">
+                            <div id="map2"></div>
+                        </div>
+
+                        <div class="map-hint">📍 Or click anywhere on the map to pin the delivery zone</div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="zone-save-btn" class="btn-amber" disabled>
+                        Add Delivery Zone
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+
+           </div>
+    </div>
+
+</div>
 
 
-            fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${latlng2.lat}&lon=${latlng2.lng}&apiKey=c9743ce533884c64a9f4b465359d181f`)
-                .then(response => response.json())
-                .then(result => {
-                    const location_string = result.features[0].properties.formatted
-                    const location_input_element = document.getElementById('editing-location')
+<!-- ── SCRIPTS ── -->
+<script>
+    // ─────────────────────────────────────────────
+    // Shared helpers
+    // ─────────────────────────────────────────────
+    function setStatus(el, msg, type = 'info') {
+        el.textContent = msg;
+        el.className = 'loc-status ' + type;
+    }
 
-                    document.getElementById('editing-location').innerText = result.features[0].properties.formatted
-                    document.querySelector('input[name="location_in_string2"]').value = result.features[0].properties.formatted
+    function nominatimSearch(query) {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=pk`;
+        return fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'PizzaOClock/1.0' } })
+            .then(r => r.json());
+    }
 
+    function reverseGeocode(lat, lng) {
+        return fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=c9743ce533884c64a9f4b465359d181f`)
+            .then(r => r.json())
+            .then(data => data.features[0].properties.formatted);
+    }
 
-                    location_input_element.value = location_string
-                    document.getElementById('delivery-location-save').removeAttribute('disabled')
-                })
-                .catch(error => console.log('error', error));
-        });
+    function restoreSearchBtn(btn) {
+        btn.disabled = false;
+        btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg> Search`;
+    }
 
+    function restoreGpsBtn(btn) {
+        btn.classList.remove('loading');
+        btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+            <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+        </svg> Use GPS`;
+    }
 
-        {% for delivery_zone in restaurant.get_delivery_zones %}
-            L.circle([{{ delivery_zone.latitude }}, {{ delivery_zone.longitude }}], {
-                color: 'green',
-                fillColor: '#56964a',
-                fillOpacity: 0.3,
-                radius: 1000,
-            }).addTo(map2);
-        {% endfor %}
+    // ─────────────────────────────────────────────
+    // MAP 1 — Restaurant Location
+    // ─────────────────────────────────────────────
+    const initLat = "{{ restaurant.get_latitude }}";
+    const initLng = "{{ restaurant.get_longitude }}";
 
+    const map = L.map('map', {
+        center: (initLat && initLng) ? [parseFloat(initLat), parseFloat(initLng)] : [31.5204, 74.3587],
+        zoom: 13
+    });
 
-    </script>
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    let marker;
+    if (initLat && initLng) {
+        marker = L.marker([parseFloat(initLat), parseFloat(initLng)]).addTo(map);
+    }
+
+    const locLat = document.getElementById('loc-lat');
+    const locLng = document.getElementById('loc-lng');
+    const locStr = document.getElementById('loc-str');
+    const locInput = document.getElementById('loc-input');
+    const locStatus = document.getElementById('loc-status');
+    const locSaveBtn = document.getElementById('loc-save-btn');
+    const locSearchBtn = document.getElementById('loc-search-btn');
+    const locGpsBtn = document.getElementById('loc-gps-btn');
+
+    // Enable save if location already set
+    if (initLat && initLng) locSaveBtn.disabled = false;
+
+    function placeLocMarker(lat, lng) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(map);
+        map.setView([lat, lng], 14);
+        locLat.value = lat;
+        locLng.value = lng;
+        locSaveBtn.disabled = false;
+    }
+
+    // Map click
+    map.on('click', async function (e) {
+        locSaveBtn.disabled = true;
+        placeLocMarker(e.latlng.lat, e.latlng.lng);
+        setStatus(locStatus, 'Resolving address…', 'info');
+        try {
+            const addr = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+            locInput.value = addr;
+            locStr.value = addr;
+            setStatus(locStatus, '📍 ' + addr.split(',').slice(0, 2).join(','), 'success');
+        } catch { setStatus(locStatus, 'Could not resolve address.', 'error'); }
+        locSaveBtn.disabled = false;
+    });
+
+    // Enter key triggers search
+    locInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!locSearchBtn.disabled) locSearchBtn.click();
+        }
+    });
+
+    // Typing enables search
+    locInput.addEventListener('input', () => {
+        locSearchBtn.disabled = locInput.value.trim() === '';
+        if (locInput.value.trim()) setStatus(locStatus, 'Press Search to find this location.', 'info');
+        else setStatus(locStatus, '', 'info');
+    });
+
+    // Search button
+    locSearchBtn.addEventListener('click', async () => {
+        const q = locInput.value.trim();
+        if (!q) return;
+        setStatus(locStatus, '🔍 Searching for ' + q + '…', 'info');
+        locSearchBtn.disabled = true;
+        locSearchBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round"
+         style="width:14px;height:14px;animation:spin 1s linear infinite">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.09-7.18"/>
+    </svg> Searching…`;
+        try {
+            const data = await nominatimSearch(q);
+            if (!data || data.length === 0) {
+                setStatus(locStatus, '❌ Location not found.', 'error');
+            } else {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                placeLocMarker(lat, lng);
+                locStr.value = data[0].display_name;
+                setStatus(locStatus, '📍 Found: ' + data[0].display_name.split(',').slice(0, 2).join(','), 'success');
+            }
+        } catch { setStatus(locStatus, '❌ Search failed.', 'error'); }
+        restoreSearchBtn(locSearchBtn);
+    });
+
+    // GPS button
+    locGpsBtn.addEventListener('click', () => {
+        if (!navigator.geolocation) { setStatus(locStatus, 'Geolocation not supported.', 'error'); return; }
+        locGpsBtn.classList.add('loading');
+        locGpsBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round"
+         style="width:14px;height:14px;animation:spin 1s linear infinite">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.09-7.18"/>
+    </svg> Detecting…`;
+        setStatus(locStatus, 'Requesting GPS…', 'info');
+        navigator.geolocation.getCurrentPosition(
+            async pos => {
+                placeLocMarker(pos.coords.latitude, pos.coords.longitude);
+                setStatus(locStatus, 'Resolving address…', 'info');
+                try {
+                    const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+                    locInput.value = addr;
+                    locStr.value = addr;
+                    setStatus(locStatus, '📍 ' + addr.split(',').slice(0, 2).join(','), 'success');
+                } catch { setStatus(locStatus, 'Could not resolve address.', 'error'); }
+                restoreGpsBtn(locGpsBtn);
+            },
+            err => {
+                const msgs = { 1: 'Access denied.', 2: 'Could not detect.', 3: 'Timed out.' };
+                setStatus(locStatus, msgs[err.code] || 'Error.', 'error');
+                restoreGpsBtn(locGpsBtn);
+            },
+            { timeout: 10000, maximumAge: 60000 }
+        );
+    });
+
+    // ─────────────────────────────────────────────
+    // MAP 2 — Delivery Zones
+    // ─────────────────────────────────────────────
+    const map2 = L.map('map2', {
+        center: (initLat && initLng) ? [parseFloat(initLat), parseFloat(initLng)] : [31.5204, 74.3587],
+        zoom: 13
+    });
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map2);
+
+    // Draw existing delivery zones
+    {% for zone in restaurant.get_delivery_zones %}
+    L.circle([{{ zone.latitude }}, {{ zone.longitude }}], {
+        color: '#10b981',
+        fillColor: '#10b981',
+        fillOpacity: 0.15,
+        radius: 1000,
+    }).addTo(map2);
+    {% endfor %}
+
+    let marker2;
+    const zoneLat = document.getElementById('zone-lat');
+    const zoneLng = document.getElementById('zone-lng');
+    const zoneStr = document.getElementById('zone-str');
+    const zoneInput = document.getElementById('zone-input');
+    const zoneStatus = document.getElementById('zone-status');
+    const zoneSaveBtn = document.getElementById('zone-save-btn');
+    const zoneSearchBtn = document.getElementById('zone-search-btn');
+    const zoneGpsBtn = document.getElementById('zone-gps-btn');
+
+    function placeZoneMarker(lat, lng) {
+        if (marker2) map2.removeLayer(marker2);
+        marker2 = L.marker([lat, lng]).addTo(map2);
+        map2.setView([lat, lng], 13);
+        zoneLat.value = lat;
+        zoneLng.value = lng;
+        zoneSaveBtn.disabled = false;
+    }
+
+    map2.on('click', async function (e) {
+        zoneSaveBtn.disabled = true;
+        placeZoneMarker(e.latlng.lat, e.latlng.lng);
+        setStatus(zoneStatus, 'Resolving address…', 'info');
+        try {
+            const addr = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+            zoneInput.value = addr;
+            zoneStr.value = addr;
+            setStatus(zoneStatus, '📍 ' + addr.split(',').slice(0, 2).join(','), 'success');
+        } catch { setStatus(zoneStatus, 'Could not resolve address.', 'error'); }
+        zoneSaveBtn.disabled = false;
+    });
+
+    // Enter key triggers search
+    zoneInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!zoneSearchBtn.disabled) zoneSearchBtn.click();
+        }
+    });
+
+    zoneInput.addEventListener('input', () => {
+        zoneSearchBtn.disabled = zoneInput.value.trim() === '';
+        if (zoneInput.value.trim()) setStatus(zoneStatus, 'Press Search to find this area.', 'info');
+        else setStatus(zoneStatus, '', 'info');
+    });
+
+    zoneSearchBtn.addEventListener('click', async () => {
+        const q = zoneInput.value.trim();
+        if (!q) return;
+        setStatus(zoneStatus, '🔍 Searching for ' + q + '…', 'info');
+        zoneSearchBtn.disabled = true;
+        zoneSearchBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round"
+         style="width:14px;height:14px;animation:spin 1s linear infinite">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.09-7.18"/>
+    </svg> Searching…`;
+        try {
+            const data = await nominatimSearch(q);
+            if (!data || data.length === 0) {
+                setStatus(zoneStatus, '❌ Location not found.', 'error');
+            } else {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                placeZoneMarker(lat, lng);
+                zoneStr.value = data[0].display_name;
+                setStatus(zoneStatus, '📍 Found: ' + data[0].display_name.split(',').slice(0, 2).join(','), 'success');
+            }
+        } catch { setStatus(zoneStatus, '❌ Search failed.', 'error'); }
+        restoreSearchBtn(zoneSearchBtn);
+    });
+
+    zoneGpsBtn.addEventListener('click', () => {
+        if (!navigator.geolocation) { setStatus(zoneStatus, 'Geolocation not supported.', 'error'); return; }
+        zoneGpsBtn.classList.add('loading');
+        zoneGpsBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round"
+         style="width:14px;height:14px;animation:spin 1s linear infinite">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.09-7.18"/>
+    </svg> Detecting…`;
+        setStatus(zoneStatus, 'Requesting GPS…', 'info');
+        navigator.geolocation.getCurrentPosition(
+            async pos => {
+                placeZoneMarker(pos.coords.latitude, pos.coords.longitude);
+                setStatus(zoneStatus, 'Resolving address…', 'info');
+                try {
+                    const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+                    zoneInput.value = addr;
+                    zoneStr.value = addr;
+                    setStatus(zoneStatus, '📍 ' + addr.split(',').slice(0, 2).join(','), 'success');
+                } catch { setStatus(zoneStatus, 'Could not resolve address.', 'error'); }
+                restoreGpsBtn(zoneGpsBtn);
+            },
+            err => {
+                const msgs = { 1: 'Access denied.', 2: 'Could not detect.', 3: 'Timed out.' };
+                setStatus(zoneStatus, msgs[err.code] || 'Error.', 'error');
+                restoreGpsBtn(zoneGpsBtn);
+            },
+            { timeout: 10000, maximumAge: 60000 }
+        );
+    });
+</script>
 
 {% endblock %}

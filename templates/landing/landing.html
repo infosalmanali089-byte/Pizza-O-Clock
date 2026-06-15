@@ -1,449 +1,1123 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %} FreshBite {% endblock %}
+{% block title %} Pizza'O Clock {% endblock %}
 {% block styles %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-    <style>
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+    }
 
-        .container1 {
-            position: relative;
-            background: aqua;
-        }
+    * { box-sizing: border-box; }
 
-        .search-form {
-            left: 50%;
-            transform: translate(-50%, 40%);
-            width: 100%;
-            z-index: 10;
-        }
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--light);
+        margin: 0;
+        overflow-x: hidden;
+    }
 
-        .main-img {
-            filter: brightness(50%);
-        }
+    /* ── HERO ── */
+    .hero {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+    }
 
-        .card-floating {
-            transform: translateY(-70%) translateX(-5%);
-            background: white;
-            transition: all 250ms;
-            opacity: 0;
-            border-radius: 2rem;
-        }
+    .hero-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        filter: brightness(30%) saturate(0.8);
+    }
 
-        .card-floating:hover {
-            background-color: #eff1f2;
-        }
+    .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(28,25,23,0.75) 0%, rgba(28,25,23,0.2) 100%);
+    }
 
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        padding: 6rem 2rem 4rem;
+        max-width: 780px;
+        margin: 0 auto;
+        width: 100%;
+    }
 
-        input.form-control {
-            transition: all 250ms;
+    .hero-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(245,158,11,0.15);
+        border: 1px solid rgba(245,158,11,0.4);
+        border-radius: 50px;
+        padding: 0.4rem 1rem;
+        color: var(--amber);
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        animation: fadeSlide 0.6s ease both;
+    }
 
-        }
+    .hero-tag span {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--amber);
+        display: inline-block;
+        animation: pulseDot 1.5s infinite;
+    }
 
-        input:focus {
-            transform: scale(1.01, 1.01);
-        }
+    @keyframes pulseDot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.35; transform: scale(0.65); }
+    }
 
-        .animate-entry {
-            opacity: 0;
-            transform: scale(0.9);
-            transition: all 250ms;
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2.4rem, 6vw, 4rem);
+        color: white;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        animation: fadeSlide 0.6s 0.1s ease both;
+    }
 
+    .hero-title em { color: var(--amber); font-style: italic; }
 
-        }
+    @keyframes fadeSlide {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
 
+    /* ── SEARCH BOX ── */
+    .search-box {
+        background: white;
+        border-radius: 20px;
+        padding: 1.25rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        max-width: 620px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+        animation: fadeSlide 0.6s 0.2s ease both;
+        flex-wrap: wrap;
+    }
 
-        .show {
-            opacity: 1;
-            transform: scale(1);
+    .location-field {
+        flex: 1;
+        min-width: 180px;
+        position: relative;
+    }
 
-        }
+    .location-field svg.field-icon {
+        position: absolute;
+        left: 12px; top: 50%;
+        transform: translateY(-50%);
+        width: 18px; height: 18px;
+        color: var(--muted);
+        pointer-events: none;
+    }
 
-        .show-card {
-            transform: translateX(0%) translateY(-70%);
-            opacity: 1;
-        }
+    .location-field input {
+        width: 100%;
+        padding: 0.85rem 1rem 0.85rem 2.5rem;
+        border: 1.5px solid #e7e5e4;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        color: var(--dark);
+        background: #fafaf9;
+        outline: none;
+        transition: all 0.2s;
+    }
 
-        .modal {
-            top: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.37);
-            justify-content: center;
-            align-items: center;
-            padding: 0.5rem;
-        }
+    .location-field input:focus {
+        border-color: var(--amber);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+    }
 
-        .modal-content {
-            min-height: 30%;
-        }
+    .location-field input::placeholder { color: #c4bfbb; }
 
+    .use-location-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.85rem 1rem;
+        border: 1.5px solid #e7e5e4;
+        border-radius: 12px;
+        background: #fafaf9;
+        color: var(--mid);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
 
-        #map {
-            height: 360px;
-            width: 360px;
-            margin: 0.5rem;
-            border-radius: 1rem;
+    .use-location-btn:hover { border-color: var(--amber); color: var(--amber-dark); background: var(--amber-light); }
+    .use-location-btn svg { width: 16px; height: 16px; }
+    .use-location-btn.loading { opacity: 0.7; pointer-events: none; }
 
-        }
+    .find-btn {
+        padding: 0.85rem 1.5rem;
+        background: var(--amber);
+        color: var(--dark);
+        border: none;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
 
-        #map-container {
-            position: fixed;
-            background-color: rgba(0, 0, 0, 0.59);
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            visibility: hidden;
-        }
+    .find-btn:hover:not(:disabled) {
+        background: var(--amber-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(217,119,6,0.35);
+    }
 
-        #map-select-location {
-            width: 200px;
-            padding: 0.5rem 0.5rem;
-            color: white;
-            border-radius: 0.5rem;
-            outline: none;
-            border: none;
-        }
+    .find-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .find-btn svg { width: 16px; height: 16px; }
 
-        button {
-            text-wrap: nowrap;
-        }
+    .location-status {
+        width: 100%;
+        font-size: 0.8rem;
+        padding: 0 0.25rem;
+        min-height: 1.2rem;
+        transition: all 0.3s;
+    }
+    .location-status.success { color: #10b981; }
+    .location-status.error   { color: #ef4444; }
+    .location-status.info    { color: var(--muted); }
 
+    /* ── NEARBY BANNER ── */
+    .nearby-banner {
+        background: #f0fdf4;
+        border-bottom: 1.5px solid #bbf7d0;
+        padding: 0.75rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.88rem;
+        color: #166534;
+        font-weight: 500;
+    }
 
-    </style>
+    .nearby-banner-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #16a34a;
+        flex-shrink: 0;
+        animation: pulseDot 1.5s infinite;
+    }
+
+    /* ── NO NEARBY ── */
+    .no-nearby {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+    }
+
+    .no-nearby-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+
+    .no-nearby-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .no-nearby-sub {
+        color: var(--muted);
+        font-size: 0.9rem;
+        max-width: 400px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    /* ── FOOD GROUPS SECTION ── */
+    .food-groups-section {
+        background: white;
+        padding: 4rem 0 2rem;
+    }
+
+    .food-groups-inner { max-width: 1200px; margin: 0 auto; }
+
+    .food-groups-intro {
+        padding: 0 2rem 2.5rem;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .food-groups-eyebrow {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--amber-dark);
+        margin-bottom: 0.4rem;
+    }
+
+    .food-groups-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+        color: var(--dark);
+        line-height: 1.15;
+        margin: 0;
+    }
+
+    .food-groups-title em { color: var(--amber-dark); font-style: italic; }
+
+    /* ── EACH CATEGORY BLOCK ── */
+    .food-group {
+        margin-bottom: 0.5rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .food-group:last-child { border-bottom: 1px solid var(--border); margin-bottom: 0; }
+
+    .food-group-header {
+        padding: 1.1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+    }
+
+    .food-group-left { display: flex; align-items: center; gap: 0.75rem; }
+
+    .food-group-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+    }
+
+    .food-group-name::before {
+        content: '';
+        display: inline-block;
+        width: 4px; height: 16px;
+        background: var(--amber);
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    .food-group-count {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--muted);
+        background: var(--light);
+        border: 1px solid var(--border);
+        padding: 0.18rem 0.55rem;
+        border-radius: 50px;
+    }
+
+    .group-nav { display: flex; gap: 0.35rem; }
+
+    .group-nav-btn {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        border: 1.5px solid var(--border);
+        background: white;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: all 0.18s;
+        flex-shrink: 0;
+    }
+
+    .group-nav-btn:hover { border-color: var(--amber); background: var(--amber-light); color: var(--amber-dark); }
+    .group-nav-btn svg { width: 13px; height: 13px; pointer-events: none; }
+
+    .food-group-outer { position: relative; overflow: hidden; }
+
+    .food-group-outer::after {
+        content: '';
+        position: absolute;
+        top: 0; right: 0; bottom: 0;
+        width: 60px;
+        background: linear-gradient(to left, white, transparent);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .food-group-row {
+        display: flex;
+        gap: 1rem;
+        padding: 0.75rem 2rem 1.5rem;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        cursor: grab;
+    }
+
+    .food-group-row:active { cursor: grabbing; }
+    .food-group-row::-webkit-scrollbar { display: none; }
+
+    /* ── FOOD CARD ── */
+    .food-card {
+        flex: 0 0 200px;
+        background: var(--light);
+        border-radius: 16px;
+        overflow: hidden;
+        text-decoration: none;
+        display: block;
+        border: 1.5px solid transparent;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.2s;
+    }
+
+    .food-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 14px 36px rgba(0,0,0,0.11);
+        border-color: rgba(245,158,11,0.3);
+    }
+
+    .food-card-img-wrap { position: relative; height: 148px; overflow: hidden; }
+
+    .food-card-img-wrap img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.4s ease;
+    }
+
+    .food-card:hover .food-card-img-wrap img { transform: scale(1.07); }
+
+    .food-card-crown {
+        position: absolute;
+        top: 0.55rem; left: 0.55rem;
+        background: rgba(28,25,23,0.72);
+        color: var(--amber);
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.2rem 0.5rem;
+        border-radius: 50px;
+        backdrop-filter: blur(4px);
+        letter-spacing: 0.04em;
+        z-index: 1;
+    }
+
+    .food-card-badge {
+        position: absolute;
+        top: 0.55rem; right: 0.55rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.22rem 0.55rem;
+        border-radius: 50px;
+        z-index: 1;
+    }
+
+    .food-card-badge.rated   { background: var(--amber); color: var(--dark); }
+    .food-card-badge.unrated { background: rgba(0,0,0,0.48); color: #fff; }
+
+    .food-card-body { padding: 0.85rem 0.95rem 0.95rem; }
+
+    .food-card-restaurant {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--amber-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .food-card-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        color: var(--dark);
+        margin-bottom: 0.35rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .food-card-location {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-bottom: 0.6rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .food-card-location svg { width: 10px; height: 10px; flex-shrink: 0; }
+
+    .food-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid #f0efee;
+        padding-top: 0.55rem;
+    }
+
+    .food-card-price { font-size: 0.86rem; font-weight: 600; color: var(--dark); }
+    .food-card-order { font-size: 0.76rem; font-weight: 500; color: var(--amber-dark); transition: transform 0.2s; }
+    .food-card:hover .food-card-order { transform: translateX(4px); }
+
+    /* ── FEATURE SECTIONS ── */
+    .section-wrap { padding: 5rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+
+    .feat-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--amber-dark);
+        margin-bottom: 0.6rem;
+    }
+
+    .feat-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        color: var(--dark);
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+
+    .feat-title em { color: var(--amber-dark); font-style: italic; }
+
+    .feature-block {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        align-items: end;
+        margin-bottom: 6rem;
+    }
+
+    .feature-block.reverse { direction: rtl; }
+    .feature-block.reverse > * { direction: ltr; }
+
+    .feature-img-wrap {
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px 24px 0 0;
+        height: 420px;
+        opacity: 0;
+        transform: scale(0.96);
+        transition: all 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    .feature-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s ease; }
+    .feature-img-wrap:hover img { transform: scale(1.04); }
+    .feature-img-wrap.visible { opacity: 1; transform: scale(1); }
+
+    .feature-card {
+        background: white;
+        border-radius: 0 0 24px 24px;
+        padding: 2rem 2.25rem;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+        border-top: 3px solid var(--amber);
+        transform: translateY(-2px);
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    .feature-card.visible { opacity: 1; transform: translateY(0); }
+    .feature-card h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--dark); margin-bottom: 0.6rem; }
+    .feature-card p { color: var(--mid); font-size: 0.95rem; line-height: 1.7; margin-bottom: 1.25rem; }
+
+    .cta-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.65rem 1.25rem;
+        background: var(--dark);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .cta-btn:hover { background: var(--amber-dark); color: white; transform: translateX(3px); }
+    .cta-btn svg { width: 14px; height: 14px; }
+
+    .order-now-status {
+        font-size: 0.78rem;
+        margin-top: 0.5rem;
+        color: var(--muted);
+        min-height: 1rem;
+    }
+
+    /* ── CITIES ── */
+    .cities-section { background: var(--dark); padding: 5rem 1.5rem; }
+    .cities-inner { max-width: 1100px; margin: 0 auto; }
+    .cities-inner .feat-title { color: white; }
+
+    .cities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-top: 2.5rem;
+    }
+
+    .city-card { border-radius: 16px; overflow: hidden; position: relative; height: 220px; text-decoration: none; display: block; }
+    .city-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; display: block; }
+    .city-card:hover img { transform: scale(1.08); }
+    .city-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%); }
+    .city-card-name { position: absolute; bottom: 1rem; left: 1rem; color: white; font-family: 'Playfair Display', serif; font-size: 1.1rem; }
+
+    /* ── FOOTER TEXT ── */
+    .footer-text-section { padding: 5rem 1.5rem; max-width: 800px; margin: 0 auto; }
+    .footer-text-section h3 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--dark); margin-bottom: 1rem; }
+    .footer-text-section p { color: var(--mid); line-height: 1.8; }
+
+    .accordion { border: 1px solid #e7e5e4; border-radius: 16px; overflow: hidden; margin-top: 2rem; }
+    .accordion-item { border-bottom: 1px solid #e7e5e4; }
+    .accordion-item:last-child { border-bottom: none; }
+
+    .accordion-button {
+        width: 100%;
+        background: white;
+        border: none;
+        padding: 1.1rem 1.5rem;
+        text-align: left;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--dark);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: background 0.2s;
+    }
+
+    .accordion-button:hover { background: #fafaf9; }
+    .accordion-button:not(.collapsed) { color: var(--amber-dark); }
+    .accordion-body { padding: 0 1.5rem 1.5rem; color: var(--mid); line-height: 1.7; font-size: 0.95rem; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+        .feature-block { grid-template-columns: 1fr; }
+        .feature-block.reverse { direction: ltr; }
+        .feature-img-wrap { height: 260px; border-radius: 16px 16px 0 0; }
+        .search-box { flex-direction: column; align-items: stretch; }
+        .use-location-btn, .find-btn { width: 100%; justify-content: center; }
+        .food-group-header { padding: 1rem 1.25rem; }
+        .food-group-row { padding: 0.75rem 1.25rem 1.25rem; }
+        .food-groups-intro { padding: 0 1.25rem 2rem; }
+        .food-card { flex: 0 0 168px; }
+        .food-card-img-wrap { height: 125px; }
+        .nearby-banner { padding: 0.75rem 1.25rem; }
+    }
+
+    @media (max-width: 480px) { .hero-content { padding: 5rem 1rem 3rem; } }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 {% endblock %}
 
 {% block content %}
-    <div id="map-container">
-        <div id="map"></div>
-        <button id="map-select-location" class="bg-primary">Select</button>
-    </div>
-    <div class="container1">
-        <form action="{% url 'user:nearby_restaurants' %}"
-              class="position-absolute top-0 mt-lg-5 p-lg-5 p-sm-4 mt-sm-0 search-form d-flex flex-column gap-3">
-            <div>
-                <h1 class=" display-4 fw-bolder text-white">Quality food, right where you want it.</h1>
-            </div>
-            <div style="border-radius: 1rem;padding: .7rem" class="d-flex gap-3 bg-white border border-warning">
-                <input name="location" id="location-input-box" type="text" placeholder="Location"
-                       class="form-control rounded-elem p-3 border border-warning"/>
-                <input type="hidden" name="latitude" value="{{ user.get_latitude }}">
-                <input type="hidden" name="longitude" value="{{ user.get_longitude }}">
-                <button disabled id="btn-find-food" type="submit"
-                        class="btn btn-warning d-flex align-items-center nowrap">
-                    Find Food
+
+<!-- ── HERO ── -->
+<div class="hero">
+    <img class="hero-bg" src="{% static 'images/Flat lay arrangement with salad box and sauce _ Free Photo (1).jpg' %}" alt="background">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-tag"><span></span> Pakistan's Favourite Food Delivery</div>
+        <h1 class="hero-title">Quality food,<br>right where <em>you</em> want it.</h1>
+
+        <form action="{% url 'user:nearby_restaurants' %}" id="search-form" onsubmit="return false;">
+            <input type="hidden" name="latitude"  id="lat-input"  value="{{ user.get_latitude }}">
+            <input type="hidden" name="longitude" id="lng-input"  value="{{ user.get_longitude }}">
+
+            <div class="search-box">
+                <div class="location-field">
+                    <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <input type="text" name="location" id="location-input"
+                           placeholder="Enter city or address e.g. Burewala…" autocomplete="off">
+                </div>
+
+                <button type="button" class="use-location-btn" id="use-location-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+                        <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+                        <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+                    </svg>
+                    Use my location
                 </button>
+
+                <button type="button" class="find-btn" id="find-btn" disabled>
+                    Find Food
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </button>
+
+                <div class="location-status info" id="location-status"></div>
             </div>
         </form>
-
-        <img class="img-fluid main-img" src="{% static 'images/restaurant-mural-wallpaper.jpg' %}" alt="background">
     </div>
+</div>
 
-    <div class="mt-5 pt-5">
-        <div class="">
-            <h2 class="display-5 ms-5">We take care of the rest, you focus on cooking</h2>
-            <img class="img-fluid animate-entry" src="{% static 'images/chef.jpg' %}" alt="man cooking">
-            <div class="border m-5 card-floating shadow-sm">
-                <div class="card-body">
-                    <h2 class="card-title">List your Restaurant on Fresh Bite!</h2>
-                    <p>Want millions of new fans to savor your amazing food and groceries? So do we!</p>
-                    <p>Sound good? Let’s team up today and make magic happen!</p>
-                    <div class="d-flex justify-content-start">
-                        <a href="{% url 'restaurant:login' %}" class="btn btn-warning ">Get Started</a>
+
+<!-- ── FOOD GROUPS ── -->
+{% if food_groups %}
+
+    {% if user_has_location %}
+    <div class="nearby-banner">
+        <div class="nearby-banner-dot"></div>
+        Showing dishes from restaurants within 15 km of your saved location
+    </div>
+    {% endif %}
+
+    <div class="food-groups-section">
+        <div class="food-groups-inner">
+
+            <div class="food-groups-intro">
+                <div>
+                    <div class="food-groups-eyebrow">
+                        {% if user_has_location %}Nearby Favourites{% else %}Community Favourites{% endif %}
                     </div>
+                    <h2 class="food-groups-title">
+                        {% if user_has_location %}
+                            Food near <em>you</em>, by category
+                        {% else %}
+                            Popular items, <em>by category</em>
+                        {% endif %}
+                    </h2>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class=" py-5">
-        <div>
-            <h2 class="display-5 mx-5">Find us in these cities and many more!</h2>
-        </div>
-        <div class="p-5 row ">
+            {% for group in food_groups %}
+            <div class="food-group">
 
-            {% for city in covered_cities %}
-
-                <div class="col-lg-3 col-md-4 col-sm-12 mb-3">
-                    <a href="{{ city.wiki_link }}" class="card "
-                       style="border-radius: 1rem;overflow: clip; text-decoration: none;">
-                        <img class="card-img-top"
-                             src="{{ city.city_image.url }}"
-                             height="200px"
-                             width="100px"
-                             alt="Card image cap">
-                        <div class="card-body  ">
-                            <h5 class="card-title">{{ city.name }}</h5>
-                        </div>
-                    </a>
+                <div class="food-group-header">
+                    <div class="food-group-left">
+                        <div class="food-group-name">{{ group.name }}</div>
+                        <span class="food-group-count">{{ group.items|length }} dishes</span>
+                    </div>
+                    <div class="group-nav">
+                        <button class="group-nav-btn"
+                                onclick="scrollGroupRow('group-row-{{ forloop.counter }}', -1)"
+                                aria-label="Scroll left">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"/>
+                            </svg>
+                        </button>
+                        <button class="group-nav-btn"
+                                onclick="scrollGroupRow('group-row-{{ forloop.counter }}', 1)"
+                                aria-label="Scroll right">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
+
+                <div class="food-group-outer">
+                    <div class="food-group-row" id="group-row-{{ forloop.counter }}">
+                        {% for item in group.items %}
+                        <a href="{% url 'user:view_restaurant' item.menu.restaurant.id %}" class="food-card">
+                            <div class="food-card-img-wrap">
+                                <img src="{{ item.image.url }}" alt="{{ item.name }}" loading="lazy">
+                                {% if forloop.first and item.average_rating > 0 %}
+                                    <span class="food-card-crown">👑 #1</span>
+                                {% endif %}
+                                {% if item.average_rating > 0 %}
+                                    <div class="food-card-badge rated">★ {{ item.average_rating }}</div>
+                                {% else %}
+                                    <div class="food-card-badge unrated">New</div>
+                                {% endif %}
+                            </div>
+                            <div class="food-card-body">
+                                <div class="food-card-restaurant">{{ item.menu.restaurant.name }}</div>
+                                <div class="food-card-name">{{ item.name }}</div>
+                                <div class="food-card-location">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                         stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                    {{ item.menu.restaurant.get_location|default:"Location not set" }}
+                                </div>
+                                <div class="food-card-footer">
+                                    <span class="food-card-price">Rs {{ item.price }}</span>
+                                    <span class="food-card-order">Order →</span>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
             {% endfor %}
 
         </div>
     </div>
 
-    <div class="mt-5 pt-5">
-        <div class="bg">
-            <h2 class="display-5 ms-5">Experience true joy of food with Family!</h2>
-            <img class="img-fluid animate-entry" src="{% static 'images/map-delivery-see.jpg' %}" alt="man cooking">
-            <div class="border m-5  card-floating shadow-sm">
-                <div class="card-body">
-                    <h2 class="card-title">Food Served at your doorstep!</h2>
-                    <p>Gather your loved ones around the table and enjoy our delicious meals together, delivered
-                        straight to your doorstep. </p>
-                    <p>From our kitchen to your home, savor quality time with those who matter most.</p>
-                    <div class="d-flex justify-content-start">
-                        <a href="{% url 'user:nearby_restaurants' %}" class="btn btn-warning ">Order Now</a>
-                    </div>
+{% elif user_has_location %}
+    <div class="no-nearby">
+        <div class="no-nearby-icon">🍽️</div>
+        <div class="no-nearby-title">No restaurants nearby yet</div>
+        <p class="no-nearby-sub">We couldn't find any restaurants within 15 km of your saved location. Try searching a different area using the search box above.</p>
+    </div>
+{% endif %}
+
+
+<!-- ── FEATURE SECTIONS ── -->
+<div class="section-wrap">
+
+    <!-- For Restaurants -->
+    <div class="feature-block">
+        <div>
+            <div class="feat-label">For Restaurants</div>
+            <div class="feat-title">We handle the <em>delivery</em>,<br>you focus on cooking.</div>
+        </div>
+        <div></div>
+        <div class="feature-img-wrap">
+            <img src="{% static 'images/chef.jpg' %}" alt="Chef cooking">
+        </div>
+        <div class="feature-card">
+            <h3>List your Restaurant on Pizza'O Clock!</h3>
+            <p>Want millions of new fans to savour your amazing food and groceries? Let's team up and make magic happen.</p>
+            <a href="{% url 'restaurant:login' %}" class="cta-btn">
+                Get Started
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- For Families — Order Now uses location -->
+    <div class="feature-block reverse">
+        <div>
+            <div class="feat-label">For Families</div>
+            <div class="feat-title">Food delivered to<br>your <em>doorstep</em>.</div>
+        </div>
+        <div></div>
+        <div class="feature-img-wrap">
+            <img src="{% static 'images/map-delivery-see.jpg' %}" alt="Delivery">
+        </div>
+        <div class="feature-card">
+            <h3>Gather, Enjoy & Share</h3>
+            <p>Gather your loved ones around the table and enjoy our delicious meals together, delivered straight to your doorstep.</p>
+            <button type="button" class="cta-btn" id="order-now-btn" onclick="handleOrderNow()">
+                Order Now
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <div class="order-now-status" id="order-now-status"></div>
+        </div>
+    </div>
+
+    <!-- Earn With Us -->
+    <div class="feature-block">
+        <div>
+            <div class="feat-label">Earn With Us</div>
+            <div class="feat-title">Ride the<br><em>tide</em>.</div>
+        </div>
+        <div></div>
+        <div class="feature-img-wrap">
+            <img src="{% static 'images/person-delivering-food.jpg' %}" alt="Rider delivering">
+        </div>
+        <div class="feature-card">
+            <h3>Ride With Us!</h3>
+            <p>Earn great pay with flexible hours. Work independently and enjoy the freedom to choose your own shifts.</p>
+            <a href="{% url 'rider:login' %}" class="cta-btn">
+                Join Now
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ── CITIES ── -->
+<div class="cities-section">
+    <div class="cities-inner">
+        <div class="feat-label" style="color:var(--amber);">Our Coverage</div>
+        <div class="feat-title">Find us in these cities<br>and <em>many more</em>!</div>
+        <div class="cities-grid">
+            {% for city in covered_cities %}
+            <a href="{{ city.wiki_link }}" class="city-card">
+                <img src="{{ city.city_image.url }}" alt="{{ city.name }}">
+                <div class="city-card-overlay"></div>
+                <div class="city-card-name">{{ city.name }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+<!-- ── FOOTER TEXT ── -->
+<div class="footer-text-section">
+    <h3>Order food from the best restaurants in Pakistan!</h3>
+    <p>Feeling hungry? Whether you're craving cheesy pizza or aiming to skip the weekly grocery run, Pizza'O Clock has got you covered. With 2000+ restaurants from Karachi to Lahore and Islamabad to Faisalabad — plus grocery delivery from Hyperstar, Naheed Supermarket, Al-Fatah and more — sit back and let us handle the rest.</p>
+    <div class="accordion" id="accordionFlushExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#flush-collapseOne"
+                        aria-expanded="false" aria-controls="flush-collapseOne">
+                    Why choose Pizza'O Clock? ↓
+                </button>
+            </h2>
+            <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body">
+                    <strong>More Options</strong> — food delivery from 2000+ restaurants plus grocery delivery.<br><br>
+                    <strong>Easy Search</strong> — filter by cuisine or location, or type the name of your favourite spot.<br><br>
+                    <strong>Great Offers</strong> — endless discounts from top restaurants and shops.<br><br>
+                    <strong>Flexible Payment</strong> — cash on delivery and online payment options.<br><br>
+                    <strong>Simple Process</strong> — Search → Choose → Pay → Enjoy.
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="mt-5 pt-5">
-        <div class="">
-            <h2 class="display-5 ms-5">Spice up your life !</h2>
-            <img class="img-fluid animate-entry" src="{% static 'images/food-bg.jpg' %}" alt="man cooking">
-            <div class="border m-5  card-floating shadow-sm">
-                <div class="card-body">
-                    <h2 class="card-title">Embrace the heat and elevate your dining experience!</h2>
-                    <p>Indulge in the fiery flavors of our signature spicy dishes, guaranteed to ignite your taste buds
-                        and leave you craving more. </p>
-                    <div class="d-flex justify-content-start">
-                        <a href="{% url 'user:nearby_restaurants' %}" class="btn btn-warning ">Order Now</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+</div>
 
 
-    <div class="mt-5 pt-5">
-        <div class="">
-            <h2 class="display-5 ms-5">Ride The Tide!</h2>
-            <img class="img-fluid animate-entry" src="{% static 'images/person-delivering-food.jpg' %}"
-                 alt="man cooking">
-            <div class="border m-5  card-floating shadow-sm">
-                <div class="card-body">
-                    <h2 class="card-title">Ride With Us!</h2>
-                    <p>Earn great pay with flexible hours as a rider. Work independently and enjoy the freedom to choose
-                        your shifts. Apply now and start delivering today! </p>
-                    <div class="d-flex justify-content-start">
-                        <a href="{% url 'rider:login' %}" class="btn btn-warning ">Join Now</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- ── SCRIPTS ── -->
+<script>
+(function () {
 
-    <div class="m-5 pt-5">
-        <h3 class="display-7">Order food from the best restaurants and shops with FreshBite Pakistan!</h3>
-        <p class="text-secondary">Feeling hungry? Had a long and stressful day? Whether you're craving a cheesy pizza
-            delivered to your
-            doorstep or aiming to skip the weekly grocery shopping, FreshBite Pakistan has got you covered! With a vast
-            selection of the finest restaurants and shops in your area, FreshBite makes your everyday life easier. Our
-            online food delivery service offers everything you desire, whether it's a succulent burger from Takeout,
-            fresh sushi from Samdado, or peri peri chicken from Nando's. With over 2000 restaurants available from
-            Karachi to Lahore and Islamabad to Faisalabad, FreshBite Pakistan ensures you never run out of options. And
-            did you know? You can also order groceries and more from FreshBite shops! Explore our favorite partners like
-            Hyperstar, Naheed Supermarket, Al-Fatah, and many more. Sit back, relax, and let FreshBite Pakistan take the
-            burden off your shoulders.</p>
+    // ── Group row scroll & drag
+    function scrollGroupRow(rowId, dir) {
+        var row = document.getElementById(rowId);
+        if (row) row.scrollBy({ left: dir * 640, behavior: 'smooth' });
+    }
+    window.scrollGroupRow = scrollGroupRow;
 
-        <div class="accordion accordion-flush border" id="accordionFlushExample">
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="flush-headingOne">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                        More Info
-                    </button>
-                </h2>
-                <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne"
-                     data-bs-parent="#accordionFlushExample">
-                    <div class="accordion-body">
+    document.querySelectorAll('.food-group-row').forEach(function(row) {
+        var isDown = false, startX, scrollLeft;
+        row.addEventListener('mousedown', function(e) {
+            isDown = true;
+            startX = e.pageX - row.offsetLeft;
+            scrollLeft = row.scrollLeft;
+            row.style.userSelect = 'none';
+        });
+        row.addEventListener('mouseleave', function() { isDown = false; });
+        row.addEventListener('mouseup',    function() { isDown = false; row.style.userSelect = ''; });
+        row.addEventListener('mousemove',  function(e) {
+            if (!isDown) return;
+            e.preventDefault();
+            row.scrollLeft = scrollLeft - (e.pageX - row.offsetLeft - startX) * 1.3;
+        });
+    });
 
-                        <h4><strong>Why choose FreshBite?</strong></h4>
-                        <ul class="list-unstyled text-secondary">
-                            <li><span class="link">✓</span> More options: food delivery from 2000+ restaurants in
-                                Karachi, Lahore, Islamabad, and Faisalabad in Pakistan, as well as grocery delivery and
-                                more from shop partners.
-                            </li>
-                            <li><span class="link">✓</span> Easy search: filter by cuisine or location, or simply type
-                                in the name of the business you want.
-                            </li>
-                            <li><span class="link">✓</span> Various offers: indulge in the endless discounts and offers
-                                available from top restaurants and shops.
-                            </li>
-                            <li><span class="link">✓</span> Payment options: Payment made easier with cash on delivery
-                                and online payment options
-                            </li>
-                            <li><span class="link">✓</span> A simple 4-step food ordering process: Search → Choose → Pay
-                                → Enjoy
-                            </li>
-                        </ul>
+    // ── Intersection observer for feature cards
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.feature-card, .feature-img-wrap').forEach(function(el) { obs.observe(el); });
 
-                        <h4><strong>Explore Over 25 Cuisines and Order Online Now!</strong></h4>
-                        <p class="text-secondary">From selecting your location to savoring your meal, FreshBite ensures
-                            a seamless ordering
-                            experience. Craving Indian, Mexican, or Middle Eastern delicacies? Embark on a culinary
-                            journey with our diverse range of cuisines. Indulge in your favorite soup, salad, sandwich,
-                            or dessert from top-notch restaurants or budget-friendly local favorites. Opt for home
-                            delivery to unwind, or choose Pick-Up for on-the-go convenience. Let FreshBite handle it
-                            all.</p>
+    // ── Search box elements
+    var locationInput = document.getElementById('location-input');
+    var latInput      = document.getElementById('lat-input');
+    var lngInput      = document.getElementById('lng-input');
+    var findBtn       = document.getElementById('find-btn');
+    var useLocBtn     = document.getElementById('use-location-btn');
+    var statusEl      = document.getElementById('location-status');
+    var searchForm    = document.getElementById('search-form');
 
-                        <h4><strong>Home Delivery Made Easy</strong></h4>
-                        <p class="text-secondary">Enjoy the convenience of home delivery with FreshBite. Whether you're
-                            relaxing at home or busy with work, our reliable delivery service ensures your favorite
-                            meals are brought straight to your doorstep. Simply place your order, sit back, and let us
-                            take care of the rest. With FreshBite, delicious meals are just a click away.</p>
+    function setStatus(msg, type) {
+        statusEl.textContent = msg;
+        statusEl.className   = 'location-status ' + (type || 'info');
+    }
 
+    function restoreFindBtn() {
+        findBtn.removeAttribute('disabled');
+        findBtn.innerHTML = 'Find Food <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+    }
 
-                    </div>
-                </div>
-            </div>
-        </div>
+    function restoreLocBtn() {
+        useLocBtn.classList.remove('loading');
+        useLocBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg> Use my location';
+    }
 
-    </div>
+    locationInput.addEventListener('input', function() {
+        latInput.value = '';
+        lngInput.value = '';
+        if (locationInput.value.trim()) {
+            findBtn.removeAttribute('disabled');
+            setStatus('Press "Find Food" to search by city name.', 'info');
+        } else {
+            findBtn.setAttribute('disabled', '');
+            setStatus('', 'info');
+        }
+    });
 
-
-    <script>
-        const img_observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                const intersecting = entry.isIntersecting
-
-                if (intersecting) {
-                    entry.target.classList.add("show")
-
-                } else {
-                    entry.target.classList.remove("show")
-                }
-            })
-        }, {rootMargin: "-200px"})
-
-        document.querySelectorAll('.animate-entry').forEach(element => {
-            img_observer.observe(element)
-        })
-
-
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                const intersecting = entry.isIntersecting
-
-                if (intersecting) {
-                    entry.target.classList.add("show-card")
-
-                } else {
-                    entry.target.classList.remove("show-card")
-                }
-            })
-        }, {rootMargin: "-100px"})
-
-        document.querySelectorAll('.card-floating').forEach(element => {
-            observer.observe(element)
-        })
-
-    </script>
-
-    <script>
-        const location_input_box = document.getElementById('location-input-box')
-        const map_container = document.getElementById('map-container')
-        const select_location_btn = document.getElementById('map-select-location')
-        const btn_find_food = document.getElementById('btn-find-food')
-
-
-        location_input_box.addEventListener('click', () => {
-            map_container.style.visibility = 'visible'
-        })
-
-
-        map_container.addEventListener('click', e => {
-            if (e.target === map_container) {
-                map_container.style.visibility = 'hidden'
-
-                if (location_input_box.value.trim() !== '')
-                    btn_find_food.removeAttribute('disabled')
+    locationInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (locationInput.value.trim()) {
+                findBtn.click();
             }
+        }
+    });
+
+    findBtn.addEventListener('click', function() {
+        var city = locationInput.value.trim();
+        if (!city) return;
+        if (latInput.value && lngInput.value) { searchForm.submit(); return; }
+
+        setStatus('Searching for ' + city + '...', 'info');
+        findBtn.setAttribute('disabled', '');
+        findBtn.textContent = 'Searching...';
+
+        fetch(
+            'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(city) + '&format=json&limit=1&countrycodes=pk',
+            { headers: { 'Accept-Language': 'en', 'User-Agent': 'PizzaOClock/1.0' } }
+        )
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data || !data.length) {
+                setStatus('City not found. Try a different name.', 'error');
+                restoreFindBtn();
+                return;
+            }
+            latInput.value = data[0].lat;
+            lngInput.value = data[0].lon;
+            setStatus('Found: ' + data[0].display_name.split(',').slice(0, 2).join(', '), 'success');
+            searchForm.submit();
         })
-
-        select_location_btn.addEventListener('click', () => {
-            map_container.style.visibility = 'hidden'
-            if (location_input_box.value.trim() !== '')
-                btn_find_food.removeAttribute('disabled')
-        })
-
-
-        const map = L.map('map', {
-            {% if user.is_authenticated and user.get_location != '' %}
-                center: [{{ user.get_latitude }}, {{ user.get_longitude }}],
-            {% else %}
-                center: [31.5204, 74.3587],
-            {% endif %}
-            zoom: 13
+        .catch(function() {
+            setStatus('Could not geocode. Check your connection.', 'error');
+            restoreFindBtn();
         });
+    });
 
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+    // ── Pre-fill saved location for logged-in users
+    {% if user.is_authenticated and user.get_latitude != '' and user.get_longitude != '' %}
+    (function() {
+        var lat = "{{ user.get_latitude }}";
+        var lng = "{{ user.get_longitude }}";
+        latInput.value = lat;
+        lngInput.value = lng;
+        setStatus('Fetching your saved location...', 'info');
+        fetch('https://api.geoapify.com/v1/geocode/reverse?lat=' + lat + '&lon=' + lng + '&apiKey=c9743ce533884c64a9f4b465359d181f')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                locationInput.value = d.features[0].properties.formatted;
+                findBtn.removeAttribute('disabled');
+                setStatus('Using your saved location', 'success');
+            })
+            .catch(function() { setStatus('Could not resolve saved location.', 'error'); });
+    })();
+    {% endif %}
 
-        let marker;
-        {% if user.is_authenticated and user.get_latitude != '' and user.get_longitude != '' %}
-            marker = L.marker([
-                {{ user.get_latitude }},
-                {{ user.get_longitude }},
-            ]).addTo(map);
-            
-            let user_lat = "{{ user.get_latitude }}"
-            let user_lng = "{{ user.get_longitude }}"
+    // ── Use my location (GPS)
+    useLocBtn.addEventListener('click', function() {
+        if (!navigator.geolocation) { setStatus('Geolocation not supported.', 'error'); return; }
+        useLocBtn.classList.add('loading');
+        useLocBtn.textContent = 'Detecting...';
+        setStatus('Requesting your location...', 'info');
 
-            fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${user_lat}&lon=${user_lng}&apiKey=c9743ce533884c64a9f4b465359d181f`)
-                .then(response => response.json())
-                .then(result => {
-                    const location_string = result.features[0].properties.formatted
-                    const location_input_element = document.getElementById('location-input-box')
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                var lat = pos.coords.latitude, lng = pos.coords.longitude;
+                latInput.value = lat;
+                lngInput.value = lng;
+                fetch('https://api.geoapify.com/v1/geocode/reverse?lat=' + lat + '&lon=' + lng + '&apiKey=c9743ce533884c64a9f4b465359d181f')
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        locationInput.value = d.features[0].properties.formatted;
+                        findBtn.removeAttribute('disabled');
+                        setStatus('Location detected!', 'success');
+                    })
+                    .catch(function() {
+                        locationInput.value = lat.toFixed(5) + ', ' + lng.toFixed(5);
+                        findBtn.removeAttribute('disabled');
+                        setStatus('Location detected.', 'success');
+                    })
+                    .then(restoreLocBtn);
+            },
+            function(err) {
+                var msgs = { 1: 'Location access denied.', 2: 'Could not detect your location.', 3: 'Request timed out.' };
+                setStatus(msgs[err.code] || 'Location error.', 'error');
+                restoreLocBtn();
+            },
+            { timeout: 10000, maximumAge: 60000 }
+        );
+    });
 
-                    location_input_element.value = location_string
-                    btn_find_food.removeAttribute('disabled')
+    // ── Order Now button — uses search box coords, or GPS, or redirects anyway
+    window.handleOrderNow = function() {
+        var btn       = document.getElementById('order-now-btn');
+        var statusDiv = document.getElementById('order-now-status');
+        var nearbyUrl = '{% url "user:nearby_restaurants" %}';
 
-                })
-                .catch(error => console.log('error', error));
-        {% endif %}
+        // Already have coords from search box
+        var lat = document.getElementById('lat-input').value;
+        var lng = document.getElementById('lng-input').value;
 
-        let latlng;
-        map.on('click', function (e) {
-            if (marker)
-                map.removeLayer(marker);
-            console.log(e.latlng); // e is an event object (MouseEvent in this case)
-            latlng = e.latlng
-            marker = L.marker(e.latlng).addTo(map);
+        if (lat && lng) {
+            window.location.href = nearbyUrl + '?latitude=' + lat + '&longitude=' + lng;
+            return;
+        }
 
-            document.querySelector('input[name="latitude"]').value = e.latlng.lat
-            document.querySelector('input[name="longitude"]').value = e.latlng.lng
+        // Try GPS
+        if (!navigator.geolocation) {
+            window.location.href = nearbyUrl;
+            return;
+        }
 
+        btn.textContent     = 'Detecting location...';
+        btn.style.opacity   = '0.7';
+        btn.style.pointerEvents = 'none';
+        statusDiv.textContent   = 'Getting your location…';
 
-            fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${latlng.lat}&lon=${latlng.lng}&apiKey=c9743ce533884c64a9f4b465359d181f`)
-                .then(response => response.json())
-                .then(result => {
-                    const location_string = result.features[0].properties.formatted
-                    const location_input_element = document.getElementById('location-input-box')
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                window.location.href = nearbyUrl + '?latitude=' + pos.coords.latitude + '&longitude=' + pos.coords.longitude;
+            },
+            function() {
+                // GPS denied — go anyway, user can search on that page
+                statusDiv.textContent = 'Redirecting…';
+                window.location.href = nearbyUrl;
+            },
+            { timeout: 6000, maximumAge: 60000 }
+        );
+    };
 
-                    location_input_element.value = location_string
-                    btn_find_food.removeAttribute('disabled')
-
-                })
-                .catch(error => console.log('error', error));
-        });
-
-    </script>
+})();
+</script>
 
 {% endblock %}

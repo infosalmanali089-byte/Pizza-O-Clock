@@ -1,56 +1,301 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
 {% block title %}Add New Menu{% endblock %}
+
 {% block styles %}
-    <style>
-        body {
-            background-color: #ededed;
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap');
 
-        }
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+    }
 
-        .main-container {
-            margin: 3rem;
-            min-height: 70dvh;
-            background: white;
-            display: grid;
-            padding: 3rem;
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--light);
+        margin: 0;
+    }
 
+    /* ── HERO STRIP ── */
+    .hero-strip {
+        background: var(--dark);
+        padding: 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
 
-        }
+    .hero-strip::before {
+        content: '';
+        position: absolute;
+        top: -80px; right: -80px;
+        width: 280px; height: 280px;
+        border-radius: 50%;
+        background: rgba(245,158,11,0.1);
+        pointer-events: none;
+    }
 
-        .item {
-            padding: 1rem;
-            border-radius: 1rem;
-            border: solid 3px gray;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-            transition: all 250ms;
-        }
-        
-        .item:hover {
-            transform: scale(1.02);
-        }
-    </style>
+    .hero-strip::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: 30%;
+        width: 200px; height: 200px;
+        border-radius: 50%;
+        background: rgba(245,158,11,0.06);
+        pointer-events: none;
+    }
+
+    .hero-inner {
+        max-width: 680px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--amber);
+        margin-bottom: 0.4rem;
+    }
+
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        color: white;
+        line-height: 1.2;
+    }
+
+    .hero-title em {
+        color: var(--amber);
+        font-style: italic;
+    }
+
+    .hero-sub {
+        color: var(--muted);
+        font-size: 0.88rem;
+        margin-top: 0.4rem;
+    }
+
+    /* ── MAIN ── */
+    .main-wrap {
+        max-width: 680px;
+        margin: 2.5rem auto 5rem;
+        padding: 0 1.5rem;
+    }
+
+    /* ── CARD ── */
+    .poc-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .poc-card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0efee;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .poc-card-header-dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--amber);
+    }
+
+    .poc-card-body {
+        padding: 1.75rem 1.5rem;
+    }
+
+    /* ── FIELD ── */
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .field-group label {
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--mid);
+        letter-spacing: 0.03em;
+    }
+
+    .field-wrap {
+        position: relative;
+    }
+
+    .field-wrap svg {
+        position: absolute;
+        left: 0.9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px; height: 16px;
+        color: var(--muted);
+        pointer-events: none;
+    }
+
+    .field-wrap input {
+        width: 100%;
+        padding: 0.88rem 1rem 0.88rem 2.6rem;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        color: var(--dark);
+        background: var(--light);
+        outline: none;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .field-wrap input:focus {
+        border-color: var(--amber);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+    }
+
+    .field-wrap input::placeholder { color: #c4bfbb; }
+
+    /* ── ACTIONS ── */
+    .form-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #f0efee;
+    }
+
+    .btn-amber {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.82rem 1.75rem;
+        background: var(--amber);
+        color: var(--dark);
+        border: none;
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-amber:hover {
+        background: var(--amber-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(217,119,6,0.3);
+    }
+
+    .btn-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.82rem 1.5rem;
+        background: white;
+        color: var(--mid);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-outline:hover {
+        border-color: var(--amber);
+        color: var(--amber-dark);
+        background: var(--amber-light);
+    }
+
+    @media (max-width: 600px) {
+        .main-wrap { padding: 0 1rem; margin-top: 1.5rem; }
+        .hero-strip { padding: 2rem 1.25rem; }
+        .form-actions { flex-direction: column-reverse; }
+        .btn-amber, .btn-outline { width: 100%; justify-content: center; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="main-container rounded-elem">
 
-        <form method="POST" class="d-flex flex-column">
-            {% csrf_token %}
-            <div class="input-group input-group-lg mb-3">
-                <span class="input-group-text" id="basic-addon1">Menu Name</span>
-                <input name="name" type="text" class="form-control" placeholder="Please Enter Menu Name here" aria-label="Username"
-                       aria-describedby="basic-addon1">
-            </div>
-
-            <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-warning btn-lg">Save</button>
-            </div>
-
-        </form>
-
+<!-- ── HERO STRIP ── -->
+<div class="hero-strip">
+    <div class="hero-inner">
+        <div class="hero-label">Restaurant Dashboard</div>
+        <div class="hero-title">Add a new <em>menu</em></div>
+        <div class="hero-sub">Create a named menu to group your dishes under.</div>
     </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main-wrap">
+    <div class="poc-card">
+        <div class="poc-card-header">
+            <div class="poc-card-header-dot"></div>
+            Menu Details
+        </div>
+        <div class="poc-card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="field-group">
+                    <label for="name">Menu Name</label>
+                    <div class="field-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                            <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
+                            <line x1="9" y1="12" x2="15" y2="12"/>
+                            <line x1="9" y1="16" x2="13" y2="16"/>
+                        </svg>
+                        <input type="text" name="name" id="name"
+                               placeholder="e.g. Burgers, Deals, Beverages…"
+                               required autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'restaurant:menus' %}" class="btn-outline">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn-amber">
+                        Save Menu
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                             style="width:15px;height:15px">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

@@ -6,7 +6,7 @@ from modelapp.models import Restaurant, MenuItem
 class RestaurantForm(ModelForm):
     class Meta:
         model = Restaurant
-        fields = ['name', 'phone', 'phone2', 'opens_at', 'closes_at', 'restaurant_image', 'is_published']
+        fields = ['name', 'phone', 'phone2', 'opens_at', 'closes_at', 'restaurant_image', 'is_published', 'minimum_order_amount']
 
 
 class UpdateMenuItemForm(ModelForm):

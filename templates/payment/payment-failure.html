@@ -1,41 +1,105 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Failure{% endblock %}
+{% block title %}Payment Failed{% endblock %}
+
 {% block styles %}
-    <style>
-        .main-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2rem;
-            padding: 3rem;
-        }
-
-        h1 {
-            text-align: center;
-            color: darkred;
-        }
-
-        p {
-            font-size: large;
-            color: darkred;
-        }
-    </style>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
+</style>
 {% endblock %}
+
 {% block content %}
-    <div class="main-container">
+<div style="
+    min-height: 80vh;
+    background: #fafaf9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+">
+    <div style="max-width: 520px; width: 100%; text-align: center;">
 
-        <h1>Payment failure!</h1>
-        <img src="{% static 'icons/red-cross.svg' %}" height="150" width="150">
-        <p>
-            We regret to inform you that there was an issue processing your payment for your recent order with Freshbite
-            via Stripe.
+        <!-- Icon circle -->
+        <div style="
+            width: 80px; height: 80px;
+            background: #fef2f2;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem;
+        ">
+            <img src="{% static 'icons/red-cross.svg' %}" width="40" height="40" alt="Payment failed">
+        </div>
 
-            Please try again or use an alternative payment method. If the problem persists, do not hesitate to contact
-            our support team, and we'll assist you promptly.
+        <!-- Status pill -->
+        <div style="
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 50px;
+            padding: 0.3rem 0.9rem;
+            margin-bottom: 1.25rem;
+        ">
+            <span style="width:6px;height:6px;border-radius:50%;background:#dc2626;display:inline-block;"></span>
+            <span style="font-size:0.75rem;font-weight:500;color:#991b1b;letter-spacing:0.05em;text-transform:uppercase;">Payment failed</span>
+        </div>
+
+        <!-- Heading -->
+        <h1 style="
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(1.6rem, 4vw, 2rem);
+            color: #1c1917;
+            font-weight: 700;
+            margin: 0 0 1rem;
+            line-height: 1.2;
+        ">Something went wrong</h1>
+
+        <!-- Body -->
+        <p style="color: #78716c; line-height: 1.75; font-size: 0.95rem; margin: 0 0 2rem;">
+            We couldn't process your payment via Stripe for your recent Pizza'O Clock order.
+            Please try again or use a different payment method. If the issue persists,
+            our support team is here to help.
         </p>
-        <a class="btn btn-danger" href="{% url 'user:track_orders' %}">Goto Your Orders</a>
-    </div>
 
+        <!-- Actions -->
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center;">
+            <a href="{% url 'user:track_orders' %}" style="
+                display: inline-flex; align-items: center; gap: 0.4rem;
+                padding: 0.75rem 1.75rem;
+                background: #f59e0b;
+                color: #1c1917;
+                text-decoration: none;
+                border-radius: 50px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                transition: background 0.2s;
+            " onmouseover="this.style.background='#d97706'"
+               onmouseout="this.style.background='#f59e0b'">
+                <i class="fas fa-shopping-bag" style="font-size:14px;"></i>
+                Go to your orders
+            </a>
+
+            <a href="mailto:info@pizzaoclock.com" style="
+                display: inline-flex; align-items: center; gap: 0.4rem;
+                padding: 0.75rem 1.75rem;
+                background: transparent;
+                color: #57534e;
+                text-decoration: none;
+                border-radius: 50px;
+                font-size: 0.875rem;
+                border: 1px solid #e7e5e4;
+                transition: all 0.2s;
+            " onmouseover="this.style.borderColor='#a8a29e';this.style.color='#1c1917'"
+               onmouseout="this.style.borderColor='#e7e5e4';this.style.color='#57534e'">
+                <i class="fas fa-headset" style="font-size:14px;"></i>
+                Contact support
+            </a>
+        </div>
+
+        <!-- Error code -->
+        <p style="margin-top: 2rem; font-size: 0.8rem; color: #a8a29e;">
+            Error code: <code style="color: #78716c;">STRIPE_PAYMENT_DECLINED</code>
+        </p>
+
+    </div>
+</div>
 {% endblock %}

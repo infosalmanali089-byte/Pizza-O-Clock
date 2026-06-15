@@ -2,448 +2,523 @@
 
 {% load static %}
 
-{% block title %}
-    FAQ
+{% block title %}FAQ — Pizza'O Clock{% endblock %}
+
+{% block styles %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500&display=swap');
+
+    :root {
+        --amber: #f59e0b;
+        --amber-light: #fef3c7;
+        --amber-dark: #d97706;
+        --dark: #1c1917;
+        --mid: #57534e;
+        --muted: #a8a29e;
+        --light: #fafaf9;
+        --border: #e7e5e4;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--light);
+        margin: 0;
+    }
+
+    /* ── PAGE HERO ── */
+    .faq-hero {
+        background: var(--dark);
+        padding: 5rem 2rem 4rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .faq-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 60% 80% at 50% 120%, rgba(245,158,11,0.18) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .faq-hero-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(245,158,11,0.15);
+        border: 1px solid rgba(245,158,11,0.4);
+        border-radius: 50px;
+        padding: 0.4rem 1rem;
+        color: var(--amber);
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 1.25rem;
+        animation: fadeUp 0.5s ease both;
+    }
+
+    .faq-hero-tag span {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--amber);
+        display: inline-block;
+    }
+
+    .faq-hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        color: white;
+        line-height: 1.15;
+        margin: 0 0 1rem;
+        animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    .faq-hero h1 em {
+        color: var(--amber);
+        font-style: italic;
+    }
+
+    .faq-hero p {
+        color: var(--muted);
+        font-size: 1rem;
+        max-width: 480px;
+        margin: 0 auto;
+        line-height: 1.7;
+        animation: fadeUp 0.5s 0.2s ease both;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── FAQ BODY ── */
+    .faq-body {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 4rem 1.5rem 5rem;
+    }
+
+    /* ── ACCORDION ── */
+    .faq-accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .faq-item {
+        background: white;
+        border-radius: 14px;
+        border: 1.5px solid var(--border);
+        overflow: hidden;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .faq-item:hover {
+        border-color: rgba(245,158,11,0.35);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .faq-item.open {
+        border-color: rgba(245,158,11,0.5);
+        box-shadow: 0 6px 28px rgba(0,0,0,0.08);
+    }
+
+    .faq-btn {
+        width: 100%;
+        background: transparent;
+        border: none;
+        padding: 1.15rem 1.4rem;
+        text-align: left;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--dark);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        transition: color 0.2s;
+    }
+
+    .faq-btn:hover { color: var(--amber-dark); }
+
+    .faq-item.open .faq-btn { color: var(--amber-dark); }
+
+    .faq-icon {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--light);
+        border: 1.5px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, border-color 0.2s, transform 0.3s;
+    }
+
+    .faq-item.open .faq-icon {
+        background: var(--amber);
+        border-color: var(--amber);
+        transform: rotate(45deg);
+    }
+
+    .faq-icon svg {
+        width: 12px; height: 12px;
+        stroke: var(--mid);
+        transition: stroke 0.2s;
+    }
+
+    .faq-item.open .faq-icon svg { stroke: var(--dark); }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    .faq-answer-inner {
+        padding: 0 1.4rem 1.25rem;
+        color: var(--mid);
+        font-size: 0.92rem;
+        line-height: 1.75;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+        margin: 0 1.4rem;
+        margin-bottom: 0;
+    }
+
+    /* ── CONTACT STRIP ── */
+    .faq-contact {
+        margin-top: 3.5rem;
+        background: var(--dark);
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+    }
+
+    .faq-contact h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+
+    .faq-contact p {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .faq-contact a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.75rem 1.75rem;
+        background: var(--amber);
+        color: var(--dark);
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: background 0.2s, transform 0.2s;
+    }
+
+    .faq-contact a:hover {
+        background: var(--amber-dark);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 640px) {
+        .faq-body { padding: 2.5rem 1rem 3.5rem; }
+        .faq-hero { padding: 3.5rem 1rem 3rem; }
+    }
+</style>
 {% endblock %}
+
 {% block content %}
 
-    <div class="m-5 fw-bold fs-4">Frequently Asked Questions</div>
+<!-- ── HERO ── -->
+<div class="faq-hero">
+    <div class="faq-hero-tag"><span></span> Help Centre</div>
+    <h1>Frequently Asked <em>Questions</em></h1>
+    <p>Everything you need to know about ordering, delivery, and getting the most out of Pizza'O Clock.</p>
+</div>
 
-    <div class="accordion accordion-flush" id="accordionFlushExample">
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingOne">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                    What is Freshbite?
-                </button>
-            </h2>
-            <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Freshbite is a food delivery platform that takes orders from customers,
-                    picks food from restaurants, and delivers it to them via a rider.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-headingTwo">
-                    How do I place an order on Freshbite?
-                </button>
-            </h2>
-            <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">You can place an order on Freshbite through our website or mobile app by
-                    selecting your desired restaurant and menu items, then completing the checkout process.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingThree">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-headingThree">
-                    What payment methods are accepted?
-                </button>
-            </h2>
-            <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Freshbite accepts various payment methods including credit/debit cards,
-                    PayPal, and mobile wallets.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingFour">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseFour" aria-expanded="false" aria-controls="flush-headingFour">
-                    Can I schedule an order for later?
-                </button>
-            </h2>
-            <div id="flush-collapseFour" class="accordion-collapse collapse" aria-labelledby="flush-headingFour"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Yes, Freshbite allows you to schedule orders for a later time or date as per
-                    your convenience.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingFive">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseFive" aria-expanded="false" aria-controls="flush-headingFive">
-                    How can I track my order?
-                </button>
-            </h2>
-            <div id="flush-collapseFive" class="accordion-collapse collapse" aria-labelledby="flush-headingFive"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Once your order is placed, you can track its status in real-time through our
-                    app or website.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingSix">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseSix" aria-expanded="false" aria-controls="flush-headingSix">
-                    What should I do if my order is incorrect?
-                </button>
-            </h2>
-            <div id="flush-collapseSix" class="accordion-collapse collapse" aria-labelledby="flush-headingSix"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">If you receive an incorrect order, please contact our customer service
-                    immediately through the app or website for assistance and resolution.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingSeven">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseSeven" aria-expanded="false" aria-controls="flush-headingSeven">
-                    Can I cancel my order?
-                </button>
-            </h2>
-            <div id="flush-collapseSeven" class="accordion-collapse collapse" aria-labelledby="flush-headingSeven"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Orders can be canceled within a certain time frame after placing them. Check
-                    the cancellation policy on our app or website for more details.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingEight">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseEight" aria-expanded="false" aria-controls="flush-headingEight">
-                    How do I update my delivery address?
-                </button>
-            </h2>
-            <div id="flush-collapseEight" class="accordion-collapse collapse" aria-labelledby="flush-headingEight"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">You can update your delivery address in the profile section of our app or
-                    website before placing an order.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingNine">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseNine" aria-expanded="false" aria-controls="flush-headingNine">
-                    Are there delivery fees?
-                </button>
-            </h2>
-            <div id="flush-collapseNine" class="accordion-collapse collapse" aria-labelledby="flush-headingNine"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Yes, delivery fees may apply based on the distance and restaurant. You can
-                    view the delivery fee during the checkout process.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTen">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTen" aria-expanded="false" aria-controls="flush-headingTen">
-                    How do I apply a promo code?
-                </button>
-            </h2>
-            <div id="flush-collapseTen" class="accordion-collapse collapse" aria-labelledby="flush-headingTen"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">You can apply a promo code at the checkout page before completing your
-                    order. Enter the code in the designated field and the discount will be applied.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingEleven">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseEleven" aria-expanded="false"
-                        aria-controls="flush-headingEleven">
-                    What if my order is late?
-                </button>
-            </h2>
-            <div id="flush-collapseEleven" class="accordion-collapse collapse" aria-labelledby="flush-headingEleven"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">If your order is late, you can track the rider's location in real-time. If
-                    there's a significant delay, please contact our customer service for assistance.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwelve">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwelve" aria-expanded="false"
-                        aria-controls="flush-headingTwelve">
-                    Can I tip the rider?
-                </button>
-            </h2>
-            <div id="flush-collapseTwelve" class="accordion-collapse collapse" aria-labelledby="flush-headingTwelve"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Yes, you can tip the rider through the app or in cash upon delivery. The
-                    option to tip is available during checkout and after delivery.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingThirteen">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseThirteen" aria-expanded="false"
-                        aria-controls="flush-headingThirteen">
-                    Are there vegetarian or vegan options available?
-                </button>
-            </h2>
-            <div id="flush-collapseThirteen" class="accordion-collapse collapse" aria-labelledby="flush-headingThirteen"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Yes, Freshbite offers a variety of vegetarian and vegan options from
-                    different restaurants. You can filter these options while browsing the menu.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingFourteen">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseFourteen" aria-expanded="false"
-                        aria-controls="flush-headingFourteen">
-                    How do I become a Freshbite rider?
-                </button>
-            </h2>
-            <div id="flush-collapseFourteen" class="accordion-collapse collapse" aria-labelledby="flush-headingFourteen"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">To become a Freshbite rider, visit our website and fill out the rider
-                    application form. Once your application is reviewed, we will contact you for the next steps.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingFifteen">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseFifteen" aria-expanded="false"
-                        aria-controls="flush-headingFifteen">
-                    How do I report a problem with my order?
-                </button>
-            </h2>
-            <div id="flush-collapseFifteen" class="accordion-collapse collapse" aria-labelledby="flush-headingFifteen"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">You can report a problem with your order through the app or website under
-                    the 'Help' section. Provide details of the issue and our support team will assist you.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingSixteen">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseSixteen" aria-expanded="false"
-                        aria-controls="flush-headingSixteen">
-                    Can I reorder my favorite meals?
-                </button>
-            </h2>
-            <div id="flush-collapseSixteen" class="accordion-collapse collapse" aria-labelledby="flush-headingSixteen"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Yes, you can easily reorder your favorite meals from your order history in
-                    the app or website.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingSeventeen">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseSeventeen" aria-expanded="false"
-                        aria-controls="flush-headingSeventeen">
-                    Do you offer contactless delivery?
-                </button>
-            </h2>
-            <div id="flush-collapseSeventeen" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingSeventeen" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Yes, Freshbite offers contactless delivery options. You can select this
-                    option during checkout and the rider will leave your order at your doorstep.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingEighteen">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseEighteen" aria-expanded="false"
-                        aria-controls="flush-headingEighteen">
-                    How do I give feedback about my experience?
-                </button>
-            </h2>
-            <div id="flush-collapseEighteen" class="accordion-collapse collapse" aria-labelledby="flush-headingEighteen"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">You can give feedback about your experience through the app or website after
-                    your order is delivered. Your feedback helps us improve our services.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingNineteen">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseNineteen" aria-expanded="false"
-                        aria-controls="flush-headingNineteen">
-                    Is Freshbite available in my area?
-                </button>
-            </h2>
-            <div id="flush-collapseNineteen" class="accordion-collapse collapse" aria-labelledby="flush-headingNineteen"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">You can check if Freshbite is available in your area by entering your
-                    address on our website or app.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwenty">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwenty" aria-expanded="false"
-                        aria-controls="flush-headingTwenty">
-                    How can I contact customer service?
-                </button>
-            </h2>
-            <div id="flush-collapseTwenty" class="accordion-collapse collapse" aria-labelledby="flush-headingTwenty"
-                 data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">You can contact Freshbite customer service through the 'Contact Us' section
-                    on our app or website. We are available to assist you with any inquiries or issues.
-                </div>
-            </div>
-        </div>
+<!-- ── BODY ── -->
+<div class="faq-body">
+    <div class="faq-accordion" id="faqAccordion">
 
 
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwentyOne">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwentyOne" aria-expanded="false"
-                        aria-controls="flush-headingTwentyOne">
-                    How do I apply for a refund?
-                </button>
-            </h2>
-            <div id="flush-collapseTwentyOne" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingTwentyOne" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">To apply for a refund, please contact our customer service team with details
-                    of your order and the reason for the refund request. We will process your request as soon as
-                    possible.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwentyTwo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwentyTwo" aria-expanded="false"
-                        aria-controls="flush-headingTwentyTwo">
-                    Can I change or cancel my order after it's placed?
-                </button>
-            </h2>
-            <div id="flush-collapseTwentyTwo" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingTwentyTwo" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Once an order is placed, changes or cancellations may not be possible.
-                    However, you can contact our customer service team immediately to see if any adjustments can be
-                    made.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwentyThree">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwentyThree" aria-expanded="false"
-                        aria-controls="flush-headingTwentyThree">
-                    Are there any restrictions on the size of orders?
-                </button>
-            </h2>
-            <div id="flush-collapseTwentyThree" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingTwentyThree" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">There are generally no restrictions on the size of orders. However, large
-                    orders may require additional time for preparation and delivery.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwentyFour">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwentyFour" aria-expanded="false"
-                        aria-controls="flush-headingTwentyFour">
-                    How is the food packaged for delivery?
-                </button>
-            </h2>
-            <div id="flush-collapseTwentyFour" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingTwentyFour" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">We ensure that food is packaged securely and hygienically for delivery to
-                    maintain its quality and freshness during transit.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwentyFive">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwentyFive" aria-expanded="false"
-                        aria-controls="flush-headingTwentyFive">
-                    What happens if my order is missing items?
-                </button>
-            </h2>
-            <div id="flush-collapseTwentyFive" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingTwentyFive" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">If your order is missing items, please contact our customer service team
-                    immediately with details of the missing items. We will investigate and arrange for the missing items
-                    to be delivered or issue a refund.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwentySix">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwentySix" aria-expanded="false"
-                        aria-controls="flush-headingTwentySix">
-                    Do you offer catering services for events?
-                </button>
-            </h2>
-            <div id="flush-collapseTwentySix" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingTwentySix" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Yes, Freshbite offers catering services for events. Please contact our
-                    customer service team for more information and to discuss your requirements.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwentySeven">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwentySeven" aria-expanded="false"
-                        aria-controls="flush-headingTwentySeven">
-                    Can I order from multiple restaurants in one order?
-                </button>
-            </h2>
-            <div id="flush-collapseTwentySeven" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingTwentySeven" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Currently, orders can only be placed from one restaurant at a time. If you
-                    wish to order from multiple restaurants, you will need to place separate orders.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwentyEight">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwentyEight" aria-expanded="false"
-                        aria-controls="flush-headingTwentyEight">
-                    Is there a minimum order requirement?
-                </button>
-            </h2>
-            <div id="flush-collapseTwentyEight" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingTwentyEight" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Some restaurants may have minimum order requirements. You can view any such
-                    requirements on the restaurant's menu page.
-                </div>
-            </div>
-        </div>
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="flush-headingTwentyNine">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseTwentyNine" aria-expanded="false"
-                        aria-controls="flush-headingTwentyNine">
-                    How do I know if my order has been confirmed?
-                </button>
-            </h2>
-            <div id="flush-collapseTwentyNine" class="accordion-collapse collapse"
-                 aria-labelledby="flush-headingTwentyNine" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">You will receive a confirmation email or notification on the app once your
-                    order has been successfully placed and confirmed by the restaurant.
-                </div>
-            </div>
+        <!-- Custom styled FAQ items -->
+        <div class="faq-item" data-index="0">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                What is Pizza'O Clock?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Pizza'O Clock is a food delivery platform that takes orders from customers, picks food from restaurants, and delivers it to them via a rider.</div></div>
         </div>
 
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How do I place an order on Pizza'O Clock?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">You can place an order through our website or mobile app by selecting your desired restaurant and menu items, then completing the checkout process.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                What payment methods are accepted?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Pizza'O Clock accepts various payment methods including credit/debit cards, PayPal, and mobile wallets.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Can I schedule an order for later?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Yes, Pizza'O Clock allows you to schedule orders for a later time or date as per your convenience.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How can I track my order?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Once your order is placed, you can track its status in real-time through our app or website.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                What should I do if my order is incorrect?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">If you receive an incorrect order, please contact our customer service immediately through the app or website for assistance and resolution.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Can I cancel my order?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Orders can be cancelled within a certain time frame after placing them. Check the cancellation policy on our app or website for more details.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How do I update my delivery address?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">You can update your delivery address in the profile section of our app or website before placing an order.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Are there delivery fees?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Yes, delivery fees may apply based on the distance and restaurant. You can view the delivery fee during the checkout process.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How do I apply a promo code?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">You can apply a promo code at the checkout page before completing your order. Enter the code in the designated field and the discount will be applied.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                What if my order is late?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">If your order is late, you can track the rider's location in real-time. If there's a significant delay, please contact our customer service for assistance.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Can I tip the rider?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Yes, you can tip the rider through the app or in cash upon delivery. The option to tip is available during checkout and after delivery.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Are there vegetarian or vegan options available?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Yes, Pizza'O Clock offers a variety of vegetarian and vegan options from different restaurants. You can filter these options while browsing the menu.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How do I become a Pizza'O Clock rider?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">To become a Pizza'O Clock rider, visit our website and fill out the rider application form. Once your application is reviewed, we will contact you for the next steps.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How do I report a problem with my order?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">You can report a problem with your order through the app or website under the 'Help' section. Provide details of the issue and our support team will assist you.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Can I reorder my favourite meals?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Yes, you can easily reorder your favourite meals from your order history in the app or website.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Do you offer contactless delivery?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Yes, Pizza'O Clock offers contactless delivery options. You can select this option during checkout and the rider will leave your order at your doorstep.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How do I give feedback about my experience?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">You can give feedback about your experience through the app or website after your order is delivered. Your feedback helps us improve our services.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Is Pizza'O Clock available in my area?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">You can check if Pizza'O Clock is available in your area by entering your address on our website or app.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How can I contact customer service?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">You can contact Pizza'O Clock customer service through the 'Contact Us' section on our app or website. We are available to assist you with any inquiries or issues.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How do I apply for a refund?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">To apply for a refund, please contact our customer service team with details of your order and the reason for the refund request. We will process your request as soon as possible.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Can I change or cancel my order after it's placed?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Once an order is placed, changes or cancellations may not be possible. However, you can contact our customer service team immediately to see if any adjustments can be made.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Are there any restrictions on the size of orders?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">There are generally no restrictions on the size of orders. However, large orders may require additional time for preparation and delivery.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How is the food packaged for delivery?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">We ensure that food is packaged securely and hygienically for delivery to maintain its quality and freshness during transit.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                What happens if my order is missing items?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">If your order is missing items, please contact our customer service team immediately. We will investigate and arrange for the missing items to be delivered or issue a refund.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Do you offer catering services for events?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Yes, Pizza'O Clock offers catering services for events. Please contact our customer service team for more information and to discuss your requirements.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Can I order from multiple restaurants in one order?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Currently, orders can only be placed from one restaurant at a time. If you wish to order from multiple restaurants, you will need to place separate orders.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                Is there a minimum order requirement?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">Some restaurants may have minimum order requirements. You can view any such requirements on the restaurant's menu page.</div></div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+                How do I know if my order has been confirmed?
+                <span class="faq-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer"><div class="faq-answer-inner">You will receive a confirmation email or notification on the app once your order has been successfully placed and confirmed by the restaurant.</div></div>
+        </div>
 
     </div>
 
+    <!-- Contact strip -->
+    <div class="faq-contact">
+        <h3>Still have questions?</h3>
+        <p>Our support team is ready to help you with anything.</p>
+        <a href="{% url 'user:feedback' %}">
+            Contact Support
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+    </div>
+</div>
 
+<script>
+function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const answer = item.querySelector('.faq-answer');
+    const isOpen = item.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.faq-item.open').forEach(el => {
+        el.classList.remove('open');
+        el.querySelector('.faq-answer').style.maxHeight = '0';
+    });
+
+    if (!isOpen) {
+        item.classList.add('open');
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+    }
+}
+</script>
 
 {% endblock %}

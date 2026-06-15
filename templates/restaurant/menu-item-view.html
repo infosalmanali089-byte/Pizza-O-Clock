@@ -1,53 +1,120 @@
-<div class="item">
+{% load static %}
 
-    <form
+<div class="poc-card">
+
+    <!-- Item header with thumbnail -->
+    <div class="item-card-top">
+        {% if item.image %}
+            <img class="item-thumb" src="{{ item.image.url }}" alt="{{ item.name }}">
+        {% else %}
+            <div class="item-thumb-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                </svg>
+            </div>
+        {% endif %}
+        <div class="item-card-top-info">
+            <div class="item-card-name">{{ item.name }}</div>
+            <div class="item-card-price">Rs {{ item.price }}</div>
+        </div>
+        {% if item.average_rating > 0 %}
+        <div class="item-rating">★ {{ item.average_rating }}</div>
+        {% endif %}
+    </div>
+
+    <!-- Edit form -->
+    <div class="poc-card-body">
+        <form
             hx-post="{% url 'restaurant:edit_menu' pk=menu_pk %}"
-            hx-target="none"
+            hx-swap="none"
+            hx-on::after-request="show_toast()"
             enctype="multipart/form-data">
-        {% csrf_token %}
+            {% csrf_token %}
+            <input type="hidden" name="item_pk" value="{{ item.pk }}">
 
-        <input type="hidden" name="item_pk" value="{{ item.pk }}">
-        <input type="hidden" name="menu_pk" value="{{ menu_pk }}">
+            <div class="field-row">
+                <div class="field-group">
+                    <label>Item Name</label>
+                    <div class="field-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                            <rect x="9" y="3" width="6" height="4" rx="1"/>
+                        </svg>
+                        <input required type="text" name="name"
+                               placeholder="Item name"
+                               value="{{ item.name }}">
+                    </div>
+                </div>
 
-        <div class="input-group mb-3">
-            <span class="input-group-text" id="basic-addon1">Item Name</span>
-            <input required name="name" type="text" class="form-control"
-                   placeholder="Please Enter Item Name here"
-                   aria-label="Username"
-                   value="{{ item.name }}"
-                   aria-describedby="basic-addon1">
-        </div>
+                <div class="field-group">
+                    <label>Price (Rs)</label>
+                    <div class="field-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        <input required type="number" name="price"
+                               placeholder="Price" min="1"
+                               value="{{ item.price }}">
+                    </div>
+                </div>
+            </div>
 
-        <div class="input-group mb-3">
-            <label class="input-group-text" for="inputGroupFile01">Upload Image</label>
-            <input name="image" src="{{ item.image.url }}" type="file" class="form-control"
-                   id="inputGroupFile01">
-        </div>
+            <div class="field-group">
+                <label>Upload New Image</label>
+                <div class="file-drop">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <input type="file" name="image" accept="image/*">
+                </div>
+            </div>
 
-        <div class="input-group mb-3">
-            <span class="input-group-text" id="basic-addon1">Item Price</span>
-            <input required min="1" name="price" type="number" class="form-control"
-                   placeholder="Please Enter Price here"
-                   aria-label="price"
-                   value="{{ item.price }}"
-                   aria-describedby="basic-addon1">
-        </div>
+            <div class="field-group">
+                <label>Description</label>
+                <textarea required name="description"
+                          class="poc-textarea"
+                          placeholder="Describe the item…">{{ item.description }}</textarea>
+            </div>
 
-        <div class="form-floating">
-                        <textarea required name="description" class="form-control" placeholder="Leave a comment here"
-                                  id="floatingTextarea2"
-                                  style="height: 100px">{{ item.description }}</textarea>
-            <label for="floatingTextarea2">Item Description</label>
-        </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-amber">
+                    Save Changes
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                         style="width:14px;height:14px">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </button>
 
-        <button type="submit" class="btn btn-warning btn-lg my-3">Save Changes</button>
+                <form style="margin:0;"
+                      hx-post="{% url 'restaurant:delete_item' %}"
+                      hx-target="closest .poc-card"
+                      hx-swap="delete">
+                    {% csrf_token %}
+                    <input type="hidden" name="pk" value="{{ item.pk }}">
+                    <button type="submit" class="btn-danger-soft">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             style="width:14px;height:14px">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                            <path d="M10 11v6"/><path d="M14 11v6"/>
+                            <path d="M9 6V4h6v2"/>
+                        </svg>
+                        Delete
+                    </button>
+                </form>
+            </div>
 
-
-    </form>
-    <form method="POST" action="{% url 'restaurant:delete_item' %}">
-        {% csrf_token %}
-        <input type="hidden" name="pk" value="{{ item.pk }}">
-        <button type="submit" class="btn btn-danger btn-lg my-3">Delete</button>
-    </form>
-
+        </form>
+    </div>
 </div>

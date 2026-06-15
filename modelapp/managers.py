@@ -68,13 +68,10 @@ class RiderPersonManager(CustomUserManager):
         return super().get_queryset().filter(role=Roles.RIDER)
 
     def get_rider(self):
+        # Deprecated — use assign_nearest_rider() from modelapp.models instead
         riders = self.get_queryset().filter(is_available_for_ride=True).order_by('ride_count')
-
         if riders.exists():
-            rider = riders[0]
-            rider.ride_count += 1
-            rider.save()
-            return rider
+            return riders[0]
         return None
 
 

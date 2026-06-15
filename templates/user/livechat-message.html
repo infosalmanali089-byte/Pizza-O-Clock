@@ -1,13 +1,9 @@
-<div class="d-flex flex-column align-items-end">
-    <div class="px-3 fw-bold">You</div>
-    <div class="rounded-elem p-3 bg-warning d-flex align-items-center">
-        <div>{{ chat.query }}</div>
-    </div>
+<div class="msg-row user" style="animation-delay: 0s;">
+    <div class="msg-sender">You</div>
+    <div class="msg-bubble">{{ chat.query }}</div>
 </div>
 
-<div class=" d-flex flex-column align-items-start">
-    <div class="px-3 fw-bold">Fresh Bite</div>
-    <div class="rounded-elem p-3 border border-warning d-flex align-items-center">
-        <div>{{ chat.reply }}</div>
-    </div>
+<div class="msg-row bot" style="animation-delay: 0.15s;">
+    <div class="msg-sender">Pizza'O Clock</div>
+    <div class="msg-bubble">{{ chat.reply }}</div>
 </div>
